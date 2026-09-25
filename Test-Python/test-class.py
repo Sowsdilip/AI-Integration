@@ -1,5 +1,5 @@
 class Ticket:
-    def __init__(self,name:str,amount:float):
+    def __init__(self,name:str,amount:float):  #constructor
         self.name = name
         self.amount = amount
 
