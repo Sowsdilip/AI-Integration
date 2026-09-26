@@ -43,3 +43,34 @@ Day 2 25-09-2026
 - Hit a broken venv: prompt showed `(venv)` as active, but `python`/`pip` still pointed to the global install. 
   Root-caused it with `sys.executable` and `where python`/`where pip`, then recreated the venv from scratch
 - Learned: don't trust the `(venv)` prompt alone — verify with `python -c "import sys; print(sys.executable)"`
+
+
+Day 3 26-09-2026
+================
+
+1. Call Anthropic api using the claude API-KEY stored in .env file
+2. structure the output as a json using json.loads
+3. list comprehension using forloop in 1 line
+4. *args and **kwargs
+5. try and except recap
+6. hints,contextmanagers, optional, enum
+7. difference between args and kwargs and general usecases
+8. debugged issues like 
+token => max_tokens, 
+forgot to call load_dotenv()
+forgot to give model name gave empty string ""
+getting confused with : using = in that place for dict understod with example
+json.load instead of json.loads through which got to know loads always looks for a string and load looks for a file as input
+token uasge and pricing details
+9. like try with resources in java which will take care of closures
+    # file is automatically closed here, even if an error happens
+    ex1.with open("data.txt", "r") as f:
+    content = f.read()
+    # The anthropic client itself supports this pattern for streaming responses:
+    ex2.with client.messages.stream(...) as stream:
+    for text in stream.text_stream:
+        print(text, end="")
+
+
+
+
