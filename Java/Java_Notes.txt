@@ -1,0 +1,97 @@
+1. Default equals()/hashCode() behavior
+
+Every Java object inherits equals() and hashCode() from Object
+Both are based on memory reference by default, not field values/content
+new Ticket("A").equals(new Ticket("A")) → false by default, even with identical data
+
+2. How HashMap actually finds a key (2 steps)
+
+Step 1: calls hashCode() on the key → determines which internal "bucket" to check (fast, narrows search)
+Step 2: within that bucket, calls equals() → confirms it's genuinely the same key
+Both steps must succeed for get()/put() to recognize an existing key
+
+3. The rule
+
+If you override equals(), you must also override hashCode(), and they must be consistent
+Consistency = equal objects (per your equals()) must produce equal hash codes
+Reverse isn't required: different/unequal objects can share a hash code (a "collision") — that's allowed and handled internally (see point 6)
+
+4. Overriding happens on your model/key class — never on HashMap itself
+
+HashMap is used, not modified
+You override equals()/hashCode() on classes you plan to use as map keys, or wherever meaningful value-based equality is needed (e.g. list.contains())
+Eclipse's "Generate hashCode() and equals()" always creates both together, enforcing the rule above
+
+5. What breaks if only one is overridden
+
+Only equals() overridden → objects land in different buckets (wrong hash code) → equals() never even gets called → lookup fails
+Only hashCode() overridden → objects land in the same bucket, but equals() (default, reference-based) says "not equal" → lookup still fails
+Both failures are silent — no exception, just incorrect behavior, which makes this a genuinely dangerous bug class
+
+6. Hash collisions (what happens when two different keys share a hash code) — still to cover
+
+7. ArrayList vs LinkedList — corrected understanding
+
+Not about insertion order — both maintain insertion order equally
+ArrayList: backed by resizable array → fast random access (O(1) get(index)), slower middle insertion/removal (shifting required)
+LinkedList: backed by chained nodes → slow random access (O(n), must walk from start), fast insertion/removal at the ends (O(1))
+In practice: ArrayList is the default choice almost always; LinkedList rarely wins in real-world performance due to CPU cache locality, even though its Big-O looks better for some operations
+
+8. LinkedHashMap vs LinkedList — different structures, different problems
+
+LinkedHashMap: a Map that preserves key insertion order (unlike plain HashMap, which gives no order guarantee)
+LinkedList: a List — no keys at all, just an ordered sequence
+"Do I need order in my map's keys?" (→ LinkedHashMap/TreeMap decision) is a separate question from "do I need a particular sequence access pattern in my list?" (→ ArrayList/LinkedList decision)
+
+
+Add: Thread-safety and Collections (real production bug pattern)
+
+Plain HashMap (and ArrayList) are not thread-safe — concurrent reads/writes from multiple threads can silently lose or corrupt data
+Symptom pattern: intermittent, non-deterministic failures (different keys missing each time) → strong signal of a race condition, not a logic bug
+Anti-pattern: "check if null, reinitialize, then use" on a shared static field, without synchronization — this is a classic unsafe lazy-initialization bug
+Fixes: proper synchronization (double-checked locking with volatile), initializing once safely (e.g., fully in the static block, never reassigned), or using thread-safe structures (ConcurrentHashMap) if the map must be rebuilt at runtime
+Contrast with equals/hashCode bugs: those are 100% deterministic/repeatable for the same objects; race conditions are non-deterministic and vary by timing/load — a good diagnostic question to ask yourself when debugging: "does this fail the same way every time, or does it vary?"
+
+
+GC and Collections — when it can and can't cause "missing" entries
+
+A plain HashMap/ArrayList holds strong references to everything inside it — GC will never remove entries just because the map is large or unused for a while
+Static fields are strongly referenced by the loaded class — GC cannot collect them during normal app runtime
+GC-driven entry removal only happens with special structures: WeakHashMap (weak keys) or explicit SoftReference/WeakReference wrapping — used deliberately for caches that should shrink under memory pressure
+Rule of thumb: if you didn't explicitly choose a weak/soft reference structure, GC is not a valid explanation for "missing" data in a collection — look at concurrency or population logic instead
+
+
+Why race conditions surface in client testing but not dev
+=========================================================
+
+Race conditions are timing-dependent, not time-dependent — they don't "develop," they trigger when concurrent timing is unlucky
+Low concurrency (dev, single user) rarely hits the narrow vulnerable window → looks bug-free
+High concurrency (client testing, multiple nodes × multiple users) hits that window far more often → surfaces, sometimes after a delay purely from accumulated request volume, not elapsed time
+Multi-node doesn't share state across nodes — each node has its own independent race — but more nodes × more users multiplies the total chances of some node hitting it
+Diagnostic signal: intermittent, worse under load, worse with more nodes/users, not tied to specific data → points to concurrency, not a logic or data bug
+
+
+Browser cache vs. server-side cache — not the same thing
+===================================
+
+Browser cache: client-side, per-user, affects only that browser's asset storage — cannot affect server memory/state
+Server-side cache (e.g., a static Map): lives in the JVM, shared across all requests to that node — only affected by app restarts, deployments, or explicit code that clears/reloads it
+If a server-side cache empties mid-runtime without a restart, look for an explicit clear/reload mechanism in the codebase, not client-side actions
+
+ConcurrentHashMap — what it does and doesn't fix
+=================
+
+Makes concurrent reads/writes/resizing safe internally — prevents map corruption under concurrent access
+Does not prevent logical race conditions from "check-then-act" patterns (checking null, then reloading, then reading) — the map itself won't break, but the sequence of operations can still race
+Better fix for "get or build if missing" patterns: map.computeIfAbsent(key, k -> buildValue(k)) — this is atomic, handled safely in one step, rather than manual null-check-and-reload
+
+Hash collisions
+===============
+
+A collision = two different keys produce the same hashCode(), landing in the same bucket — this is normal and expected, not a bug
+Each bucket can hold multiple entries; collisions are resolved by then checking equals() within that bucket
+Pre-Java 8: each bucket = a linked list → O(n) worst case within a bucket
+Java 8+: a bucket with 8+ entries converts to a red-black tree → O(log n) worst case, protecting against performance collapse from heavy collisions
+A poor hashCode() (e.g., returning a constant) causes excessive collisions → degrades HashMap toward linked-list/tree performance for every operation, losing its O(1) average-case advantage
+Objects.hash(field1, field2, ...) combines fields to spread hash codes evenly, minimizing collisions in practice
+Full lookup sequence: hashCode → bucket → (walk list / search tree if collision) → equals() to confirm match → return value or null

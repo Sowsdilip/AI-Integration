@@ -71,6 +71,18 @@ token uasge and pricing details
     for text in stream.text_stream:
         print(text, end="")
 
+Day 4 27-09-2026
+================
+
+# Java Collections internals, hash collison
+
+1. equals()/hashCode() contract — why both must be overridden together, what breaks if only one is
+2. How HashMap.get()/put() actually work internally — hashCode → bucket → equals() within the bucket
+3. Hash collisions — what they are, why they're normal, linked-list vs. Java 8+ treeification
+4. ArrayList vs LinkedList — real performance trade-offs, corrected from your initial (wrong) assumption
+5. LinkedHashMap vs LinkedList — cleared up as separate concerns (map ordering vs. list structure)
+6. Thread-safety of collections — real production race condition, fully diagnosed
+7. GC and collections — when GC can/can't cause missing entries
 
 
 
