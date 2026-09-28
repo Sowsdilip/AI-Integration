@@ -1,0 +1,406 @@
+1. What is futures?
+Earlier, you have:
+
+futures = [
+    executor.submit(call_api, i)
+    for i in range(50)
+]
+
+executor.submit() starts/schedules a function to run in a worker thread and gives you back a Future object.
+
+So conceptually:
+
+futures = [
+    Future(request 0),
+    Future(request 1),
+    Future(request 2),
+    ...
+    Future(request 49)
+]
+
+A Future basically means:
+
+"This task is running (or waiting to run), and its result will be available later."
+
+2. What does as_completed(futures) do?
+This:
+
+for future in as_completed(futures):
+
+means:
+
+"Give me each Future as soon as that particular task finishes."
+
+This is important.
+
+It does not necessarily return them in order.
+
+For example, you might submit:
+
+request 0
+request 1
+request 2
+request 3
+...
+
+But they might finish:
+
+request 7
+request 3
+request 5
+request 4
+request 28
+...
+
+Which is exactly what you're seeing in your output:
+
+Request 07: 200 - 7.13s
+Request 03: 200 - 7.14s
+Request 05: 200 - 7.14s
+Request 04: 200 - 7.17s
+
+That's because as_completed() is saying:
+
+"Don't wait for request 0. If request 7 finishes first, give me request 7."
+
+3. What does future.result() do?
+This:
+
+future.result()
+
+means:
+
+"Give me the value returned by the function that this Future represents."
+
+Remember your function:
+
+def call_api(i):
+    start = time.time()
+
+    with urllib.request.urlopen(URL) as response:
+        response.read()
+        status = response.status
+
+    elapsed = time.time() - start
+
+    return i, status, elapsed
+
+At the end, it returns:
+
+return i, status, elapsed
+
+For example:
+
+(7, 200, 7.13)
+
+So:
+
+future.result()
+
+might give you:
+
+(7, 200, 7.13)
+
+4. What does this line do?
+i, status, elapsed = future.result()
+
+This is Python tuple unpacking.
+
+If:
+
+future.result()
+
+returns:
+
+(7, 200, 7.13)
+
+then Python automatically does:
+
+i = 7
+status = 200
+elapsed = 7.13
+
+It's equivalent to:
+
+result = future.result()
+
+i = result[0]
+status = result[1]
+elapsed = result[2]
+
+Just much cleaner.
+
+Putting everything together
+Your code:
+
+for future in as_completed(futures):
+    i, status, elapsed = future.result()
+    print(f"Request {i:02d}: {status} - {elapsed:.2f}s")
+
+means:
+
+        50 requests are running
+                 │
+                 ▼
+        ┌─────────────────┐
+        │     futures     │
+        │                 │
+        │ F0 F1 F2 ... F49│
+        └────────┬────────┘
+                 │
+                 ▼
+       Which one finishes first?
+                 │
+                 ▼
+             Future 7
+                 │
+                 ▼
+        future.result()
+                 │
+                 ▼
+          (7, 200, 7.13)
+                 │
+                 ▼
+       i=7, status=200,
+       elapsed=7.13
+                 │
+                 ▼
+          print result
+                 │
+                 ▼
+       Which finishes next?
+                 │
+                 ▼
+             Future 3
+                 │
+                 ▼
+          (3, 200, 7.14)
+
+That's why your output isn't ordered 00, 01, 02, 03....
+
+One subtle but important point
+as_completed() doesn't make the requests concurrent.
+
+This part does that:
+
+executor.submit(call_api, i)
+
+as_completed() is simply how you collect the results as they finish.
+
+So you can think of it as:
+
+submit()       → "Go do this task."
+Future         → "Here's a ticket for that task."
+as_completed() → "Tell me whenever a ticket is finished."
+result()       → "Give me the result for this ticket."
+
+That mental model will be useful when you start working with asyncio as well.
+
+
+1. You submit 50 tasks
+futures = []
+
+for i in range(50):
+    future = executor.submit(call_api, i)
+    futures.append(future)
+
+Imagine:
+
+futures
+   │
+   ├── Future 0 → call_api(0)
+   ├── Future 1 → call_api(1)
+   ├── Future 2 → call_api(2)
+   ├── Future 3 → call_api(3)
+   │
+   ...
+   │
+   └── Future 49 → call_api(49)
+
+The important thing is:
+
+submit() does not wait for call_api() to finish.
+
+It basically says:
+
+"Hey executor, please run this function. Give me a Future so I can check its result later."
+
+2. The threads start doing the work
+You have:
+
+ThreadPoolExecutor(max_workers=50)
+
+So up to 50 tasks can execute concurrently.
+
+Imagine:
+
+Thread 1  → request 0 → 💤 5 sec
+Thread 2  → request 1 → 💤 5 sec
+Thread 3  → request 2 → 💤 5 sec
+Thread 4  → request 3 → 💤 5 sec
+...
+Thread 50 → request 49 → 💤 5 sec
+
+When a request finishes, its Future becomes completed.
+
+For example:
+
+Future 7  → RUNNING → DONE → result = (7, 200, 7.13)
+Future 3  → RUNNING → DONE → result = (3, 200, 7.14)
+Future 5  → RUNNING → DONE → result = (5, 200, 7.14)
+
+So yes, there is an asynchronous/concurrent aspect here:
+
+                   executor
+                      │
+        ┌─────────────┼─────────────┐
+        ↓             ↓             ↓
+    request 7     request 3     request 5
+        │             │             │
+        ↓             ↓             ↓
+      DONE          DONE          DONE
+        │             │             │
+        ↓             ↓             ↓
+   Future 7       Future 3       Future 5
+
+3. Now comes as_completed()
+This:
+
+for future in as_completed(futures):
+
+doesn't say:
+
+"Give me Future 0, then Future 1, then Future 2..."
+
+Instead it says:
+
+"Give me whichever Future finishes next."
+
+Suppose the actual completion order is:
+
+Request 7 finishes
+        ↓
+Request 3 finishes
+        ↓
+Request 5 finishes
+        ↓
+Request 4 finishes
+        ↓
+Request 28 finishes
+
+Then:
+
+as_completed(futures)
+
+gives you:
+
+Future 7
+Future 3
+Future 5
+Future 4
+Future 28
+...
+
+That's why your output was:
+
+Request 07
+Request 03
+Request 05
+Request 04
+Request 28
+...
+
+Even though you submitted them as:
+
+0
+1
+2
+3
+4
+5
+...
+49
+
+One important distinction
+You said:
+
+"whenever it is finished it is storing result to futures?"
+
+Almost.
+
+Think of each Future as a little container:
+
+Future 7
+┌──────────────────────┐
+│ state: DONE          │
+│ result: (7, 200, ...)│
+└──────────────────────┘
+
+Before completion:
+
+Future 7
+┌──────────────────────┐
+│ state: RUNNING       │
+│ result: not ready    │
+└──────────────────────┘
+
+After completion:
+
+Future 7
+┌──────────────────────┐
+│ state: DONE          │
+│ result: (7, 200, ...)│
+└──────────────────────┘
+
+Then:
+
+future.result()
+
+means:
+
+"Give me the result from this Future."
+
+And here's the really important part
+as_completed() doesn't run the tasks.
+
+This:
+
+executor.submit(call_api, i)
+
+starts/schedules the work.
+
+This:
+
+as_completed(futures)
+
+just waits for completed work and hands you the Futures in completion order.
+
+And this:
+
+future.result()
+
+gets the actual result.
+
+So your Java brain can think of the whole thing as:
+
+submit()
+   ↓
+"Run this task and give me a Future"
+   ↓
+Future
+   ↓
+task runs in background
+   ↓
+task finishes
+   ↓
+Future becomes DONE
+   ↓
+as_completed()
+   ↓
+"Hey, this Future is done!"
+   ↓
+future.result()
+   ↓
+get the actual return value
+And that's exactly why your 50-request experiment is useful: you're watching those Futures complete at different times in real life rather than just reading about concurrency.
+

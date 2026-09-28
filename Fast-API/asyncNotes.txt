@@ -1,0 +1,18 @@
+1. How async works
+
+The problem it solves: when your API calls something slow, like Claude (1-5 seconds) or a database, the thread handling that request just waits doing nothing. In a traditional Java setup (Spring MVC on Tomcat), each request gets its own thread, so 200 users waiting on slow calls means 200 blocked threads. Threads are expensive, so you eventually run out.
+
+How async fixes it: a single thread runs an event loop. When a request hits a slow operation, it says "I'm waiting on this, go serve someone else meanwhile" and the loop picks up other requests. When the slow operation finishes, the loop resumes the first request where it left off. One thread can juggle hundreds of waiting requests because none of them are occupying it while they wait.
+
+async def marks the function as pausable
+await marks the exact point where it pauses and hands control back
+
+Two rules that trip people up:
+
+Async only helps when the slow part is waiting (network, disk, database). It does not speed up heavy CPU work like number crunching.
+Never put blocking code inside an async def. A plain blocking call (like the regular requests.get() or the standard synchronous Anthropic client) freezes the entire event loop, and every other request stalls with it. Use async-compatible clients inside async endpoints (the Anthropic library offers an async client, AsyncAnthropic).
+
+Python's async/await is the same idea as JavaScript's: await pauses your function, the event loop serves others, and it replaces the callback-hell style with code that reads top to bottom. Two differences worth knowing:
+
+JS promises start running immediately when created. Python coroutines don't run until awaited. Calling slow_async() without await just gives you a coroutine object and does nothing, which is a common beginner bug (Python even warns "coroutine was never awaited").
+In JS the event loop is built into the runtime. In Python, something has to start it, and here uvicorn does that for you.
