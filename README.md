@@ -84,5 +84,47 @@ Day 4 27-09-2026
 6. Thread-safety of collections — real production race condition, fully diagnosed
 7. GC and collections — when GC can/can't cause missing entries
 
+Day 5 28-09-2026
+================
 
+# FastAPI runs on uvicorn server
 
+1. FastAPI  is a python's webframe work(like spring for java) for building APIs, popular for AI services specially because it has in-built support for async operations and automatic request/response validation using pydantic.(this is important when calling slow things like LLM apis )
+
+2. install fastapi and uvicorn
+  # pip install gastapi uvicorn
+3. change port on uvicorn server if needed
+  # uvicorn main:app --reload --host 0.0.0.0 --port 8001
+4. used async def for learning async api calls, and how await and futures work
+  
+
+Day 6 29-09-2026
+================
+
+Semantic cache — concept notes
+
+The problem it solves
+Calling an LLM API costs money and time (seconds of latency) per request. If many users ask the same question worded differently, a naive cache (exact text match) misses almost all of them — "What is FastAPI?" and "Explain FastAPI to me" are different strings, so a plain dict cache treats them as two unrelated questions and calls the API twice.
+
+The idea
+Instead of matching by exact text, match by meaning. Convert each question into an embedding — a list of numbers (a vector) that represents its meaning in a way that similar-meaning text produces similar numbers, regardless of the exact words used. Then, for a new question, compare its embedding against previously stored ones. If one is close enough, reuse that stored answer instead of calling the LLM again.
+
+Key building blocks
+
+Embedding model: turns text into a vector (e.g. all-MiniLM-L6-v2, which you ran locally today, or an embeddings API call to a provider like Claude/OpenAI). "Similar meaning" ends up "close together" in this vector space.
+Cosine similarity: the standard way to measure how close two embeddings are. Produces a score, typically 0 to 1, where 1 means identical direction/meaning, 0 means unrelated.
+Threshold: a cutoff score (e.g. 0.85) above which you treat two questions as "the same" and reuse the cached answer. Too low → wrong answers get reused for unrelated questions. Too high → barely any cache hits, defeats the purpose. Tuning this is a real, non-trivial part of building one of these for production.
+
+The basic flow
+
+New question comes in.
+Compute its embedding.
+Compare against embeddings of all previously cached questions (cosine similarity).
+If the best match is above the threshold → return the cached answer, skip the LLM call entirely.
+If not → call the LLM for a real answer, then store the new question, its embedding, and the answer for future reuse.
+
+Why this matters for your project specifically
+
+Cost control: fewer LLM calls for repeated-meaning questions = lower API spend, directly relevant to the cost-control topic from the original career plan.
+Latency: a cache hit returns almost instantly; an LLM call takes seconds. Big win for user experience if many questions repeat in meaning.
+A genuine production pattern, not a toy exercise — real AI systems (support bots, internal Q&A tools) use exactly this to cut cost and latency at scale.
