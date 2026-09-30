@@ -101,7 +101,7 @@ Day 5 28-09-2026
 Day 6 29-09-2026
 ================
 
-Semantic cache — concept notes
+1. Semantic cache — concept notes
 
 The problem it solves
 Calling an LLM API costs money and time (seconds of latency) per request. If many users ask the same question worded differently, a naive cache (exact text match) misses almost all of them — "What is FastAPI?" and "Explain FastAPI to me" are different strings, so a plain dict cache treats them as two unrelated questions and calls the API twice.
@@ -128,3 +128,22 @@ Why this matters for your project specifically
 Cost control: fewer LLM calls for repeated-meaning questions = lower API spend, directly relevant to the cost-control topic from the original career plan.
 Latency: a cache hit returns almost instantly; an LLM call takes seconds. Big win for user experience if many questions repeat in meaning.
 A genuine production pattern, not a toy exercise — real AI systems (support bots, internal Q&A tools) use exactly this to cut cost and latency at scale.
+
+Day 7 30-09-2026
+================
+
+Notes for today
+
+Semantic cache, next level — pydantic + real Claude integration + best-match fix
+
+Anthropic does not offer its own embeddings model. Claude is built for generation/reasoning; Anthropic's own docs point to Voyage AI as the recommended embeddings provider. Embeddings and chat generation are handled by separate services even in a "Claude-based" system — good to know precisely rather than assume Claude does everything.
+Fixed yesterday's bug: the earlier version returned the first cached entry that cleared the threshold. Today's version tracks the highest similarity score across all entries and only returns a match if that best score clears the threshold — a meaningfully more correct approach for when multiple similar entries exist.
+CacheEntry(BaseModel) replaced loose tuples — same pydantic pattern from Day 1, now applied to real structured data (question, answer, embedding) instead of a toy Ticket example.
+Real integration point: the ask() function is the actual usable piece — check cache first, only call Claude on a genuine miss, then store the new answer for future reuse. This is the shape a real FastAPI endpoint would wrap around.
+Hit/miss stats — a simple counter ({"hits": 2, "misses": 2}) is a first, real example of the "observability/cost tracking" concept from the original career plan — proof, in numbers, that the cache is doing its job.
+Real results observed:
+Unrelated question ("capital of France") scored 0.091 similarity — confirms clear separation between related/unrelated content, not a fragile threshold.
+Two different reworded FastAPI questions scored 0.936 and 0.900 — both cleared the 0.85 threshold, but with different scores reflecting how differently worded each was. Graduated similarity, not binary match/no-match — something a keyword-based cache could never produce.
+Open discussion point, not yet resolved: two questions can be topically similar but need genuinely different answers (e.g., "cancel my order" vs "return my order"). This is a real risk in any threshold-based semantic cache, worth returning to before considering this pattern "done."
+
+ 

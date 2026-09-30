@@ -1,0 +1,88 @@
+[CACHE MISS] best similarity=0.000 -> calling Claude
+# FastAPI
+
+**FastAPI** is a modern, fast web framework for building APIs with Python. Here are its key characteristics:
+
+## Key Features
+
+- **Fast Performance**: One of the fastest Python frameworks (comparable to Node.js and Go)
+- **Easy to Learn**: Intuitive and straightforward syntax
+- **Automatic Documentation**: Auto-generates interactive API docs (Swagger UI and ReDoc)
+- **Type Hints**: Built-in support for Python type hints for validation and documentation
+- **Data Validation**: Uses Pydantic for automatic request/response validation
+- **Async Support**: Built-in async/await support for high-performance concurrent requests
+
+## Quick Example
+
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name: str
+    price: float
+
+@app.get("/")
+async def read
+[CACHE HIT] similarity=0.936 -> reusing answer for: 'What is FastAPI?'
+# FastAPI
+
+**FastAPI** is a modern, fast web framework for building APIs with Python. Here are its key characteristics:
+
+## Key Features
+
+- **Fast Performance**: One of the fastest Python frameworks (comparable to Node.js and Go)
+- **Easy to Learn**: Intuitive and straightforward syntax
+- **Automatic Documentation**: Auto-generates interactive API docs (Swagger UI and ReDoc)
+- **Type Hints**: Built-in support for Python type hints for validation and documentation
+- **Data Validation**: Uses Pydantic for automatic request/response validation
+- **Async Support**: Built-in async/await support for high-performance concurrent requests
+
+## Quick Example
+
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name: str
+    price: float
+
+@app.get("/")
+async def read
+[CACHE MISS] best similarity=0.091 -> calling Claude
+The capital of France is Paris.
+[CACHE HIT] similarity=0.900 -> reusing answer for: 'What is FastAPI?'
+# FastAPI
+
+**FastAPI** is a modern, fast web framework for building APIs with Python. Here are its key characteristics:
+
+## Key Features
+
+- **Fast Performance**: One of the fastest Python frameworks (comparable to Node.js and Go)
+- **Easy to Learn**: Intuitive and straightforward syntax
+- **Automatic Documentation**: Auto-generates interactive API docs (Swagger UI and ReDoc)
+- **Type Hints**: Built-in support for Python type hints for validation and documentation
+- **Data Validation**: Uses Pydantic for automatic request/response validation
+- **Async Support**: Built-in async/await support for high-performance concurrent requests
+
+## Quick Example
+
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name: str
+    price: float
+
+@app.get("/")
+async def read
+
+Stats: {'hits': 2, 'misses': 2}
