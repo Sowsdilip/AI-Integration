@@ -146,4 +146,44 @@ Unrelated question ("capital of France") scored 0.091 similarity — confirms cl
 Two different reworded FastAPI questions scored 0.936 and 0.900 — both cleared the 0.85 threshold, but with different scores reflecting how differently worded each was. Graduated similarity, not binary match/no-match — something a keyword-based cache could never produce.
 Open discussion point, not yet resolved: two questions can be topically similar but need genuinely different answers (e.g., "cancel my order" vs "return my order"). This is a real risk in any threshold-based semantic cache, worth returning to before considering this pattern "done."
 
- 
+Day 8 03-10-2026
+================
+
+## Semantic Cache Service (FastAPI + Claude + sentence-transformers)
+
+**What it does**
+A FastAPI service that reduces redundant LLM calls by caching answers based on
+*meaning*, not exact text. A new question is compared against previously
+answered ones using embedding similarity — if a close-enough match exists
+(cosine similarity above a threshold), the cached answer is reused instantly
+instead of calling Claude again.
+
+**How it works**
+1. Incoming question → converted to an embedding via `sentence-transformers`
+   (`all-MiniLM-L6-v2`, running locally)
+2. Compared against all cached questions using cosine similarity
+3. **Cache hit** (similarity > 0.85): return the stored answer, no API call
+4. **Cache miss**: call Claude (`claude-haiku-4-5-20251001`), store the new
+   question/answer/embedding as a `CacheEntry`, return the answer
+5. `/stats` endpoint tracks hit/miss counts to measure effectiveness
+
+**Stack**
+- FastAPI + pydantic (request/response validation)
+- Anthropic Python SDK (Claude API)
+- sentence-transformers (local embeddings)
+- NumPy (cosine similarity)
+
+**Endpoints**
+- `POST /askAI` — ask a question, get an answer (cached or fresh)
+- `GET /stats` — current hit/miss counts
+
+**Known limitation**
+In-memory only — cache and stats reset on restart. Next step: persist via
+Redis or a vector DB (e.g. pgvector) so the cache survives restarts and
+scales beyond a single process.
+
+**Real bugs hit and fixed while building this** (see Daily Log for details):
+calling a variable instead of a class, a pydantic field-name mismatch between
+class definition and usage, accidentally nesting the storage list inside the
+entry class instead of keeping it separate, and a misplaced return that broke
+best-match selection across multiple cache entries.
