@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from anthropic import Anthropic
 from sentence_transformers import SentenceTransformer
 from pydantic import BaseModel
+from similarity import cosine_similarity
 import numpy as np
 
 load_dotenv()
@@ -22,12 +23,6 @@ class CacheEntry(BaseModel):
 
 cache: list[CacheEntry] = []
 stats = {"hits": 0, "misses": 0}
-
-
-def cosine_similarity(a, b):
-    a, b = np.array(a), np.array(b)
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
 
 def find_best_match(question: str, threshold: float = 0.85):
     q_embedding = embed_model.encode(question).tolist()

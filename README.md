@@ -187,3 +187,65 @@ calling a variable instead of a class, a pydantic field-name mismatch between
 class definition and usage, accidentally nesting the storage list inside the
 entry class instead of keeping it separate, and a misplaced return that broke
 best-match selection across multiple cache entries.
+
+Day 9 04-10-2026
+=================
+
+1. .\venv\Scripts\activate
+    # pip install pytest httpx
+   pytest is a tresting framework, Pthons rough equivalent of junit
+   fucntions should start with pretext test_ and use a simple assert statement 
+
+## Testing the Semantic Cache
+
+**What's tested**
+- `cosine_similarity` — verified against known mathematical properties: identical
+  vectors score 1.0, orthogonal (perpendicular) vectors score 0.0
+- `find_best_match` — verified the empty-cache edge case returns no match
+
+**Project structure (why it matters)**
+
+Pytest fundamentals
+
+Test functions prefixed test_, use plain assert, auto-discovered by pytest
+pytest <file> runs one file; plain pytest recursively discovers and imports every test_*.py file from the current directory down — this can unexpectedly drag in slow/heavy imports from unrelated test files
+
+Import/packaging lessons (the real depth of today)
+
+A module's import behavior differs depending on how it's loaded — run directly as a script vs. imported as part of a package. A plain from similarity import X works standalone but fails when the same file is imported through a package path; fixed with an explicit relative import: from .similarity import X
+__init__.py files mark folders as proper Python packages, enabling imports like from Semantic_Cache.module import X — the Python equivalent of Java's package/folder structure matching
+Run pytest from the project root, not from inside a subfolder, so package-style imports resolve correctly
+
+Test isolation and speed
+
+Heavy, slow-to-import code (anything loading a large model) should be separated from pure, fast logic (cosine_similarity moved into its own lightweight similarity.py) — this alone took a test from 43s to 0.35s
+cache.clear() at the start of a test prevents one test's leftover state from silently affecting another — tests should be independent and repeatable
+
+Floating-point comparisons
+
+== 1.0 works for clean hand-picked numbers, but real-world floating-point results can have tiny rounding errors; pytest.approx(1.0) is the safer comparison for real computed values (not needed yet, but good to remember)
+
+Mocking — introduced, not yet implemented
+
+find_best_match calls the real embedding model internally, making its exact output unpredictable for a test
+Mocking means substituting a fake, test-controlled version of that dependency so the test becomes deterministic and isolated from the real model
+Correctly identified as the next real testing skill to learn — intentionally left for a future session rather than rushed today
+
+## Java Concurrency Refresher (for interview prep)
+
+Covered conceptually, mapped against this week's Python concurrency work
+(ThreadPoolExecutor/Futures, FastAPI async vs blocking):
+
+- **ExecutorService + Future** — Java's thread pool + blocking `.get()`,
+  direct parallel to Python's `ThreadPoolExecutor` + `.result()`
+- **CompletableFuture** — non-blocking chaining via `.thenApply`/`.thenAccept`,
+  but still thread-pool-based underneath, not a true single-event-loop
+  runtime like Python's `async`/`await`
+- **Virtual threads (Java 21+)** — JVM-managed lightweight threads; blocking
+  a virtual thread doesn't tie up a real OS thread, since the JVM unmounts
+  it from its carrier thread while waiting
+- **Key migration caveat**: switching to `newVirtualThreadPerTaskExecutor()`
+  is often a near drop-in replacement, but code that used a fixed pool size
+  as an implicit resource limiter (e.g., capping DB connections) needs an
+  explicit limiter (e.g., `Semaphore`) added, since virtual threads are
+  effectively unbounded by default

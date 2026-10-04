@@ -4,6 +4,7 @@ from anthropic import Anthropic
 from fastapi import FastAPI
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
+from .similarity import cosine_similarity
 import numpy as np
 
 app = FastAPI()
@@ -61,12 +62,6 @@ def find_best_match(question:str,threshold:float = 0.85):
     if best_entry and best_score > threshold:
             return best_entry, best_score
     return None, best_score
-
-
-def cosine_similarity(a, b):
-    a, b = np.array(a), np.array(b)
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
 
 @app.get("/stats")
 def getStats():

@@ -14,4 +14,3 @@ for path in ("/slow-async", "/slow-blocking"):
     with ThreadPoolExecutor(max_workers=2) as pool:
         times = list(pool.map(hit, [path, path]))
     total = time.perf_counter() - total_start
-    print(path, [round(t, 2) for t in times], "total:", round(total, 2))
