@@ -249,3 +249,51 @@ Covered conceptually, mapped against this week's Python concurrency work
   as an implicit resource limiter (e.g., capping DB connections) needs an
   explicit limiter (e.g., `Semaphore`) added, since virtual threads are
   effectively unbounded by default
+
+  ## Java Concurrency Deep Dive: synchronized vs ReentrantLock, applied to a real bug
+
+Extended the concurrency refresher by revisiting the earlier production race
+condition (static map cache, multi-node, multi-thread) with the actual fix:
+
+- Wrapping the null-check-and-reload logic in `synchronized` or `ReentrantLock`
+  with **double-checked locking** (check → lock → check again → act) would
+  have resolved it correctly while preserving the caching behavior
+- Simpler alternative: remove the runtime reload logic entirely if nothing
+  legitimately nulls the cache after initial load
+- Clarified that CompletableFuture's non-blocking call style still executes
+  on reused pool threads underneath — not a true single-event-loop model
+- Clarified that `volatile`/locking still fully apply with virtual threads,
+  since the Java Memory Model's visibility problem is about CPU cores/caching,
+  not thread weight — virtual threads still run on real carrier threads
+
+Day 10 Java concurrency Practice
+================================
+
+# Java Concurrency Practice
+
+Small exercises on thread pools, virtual threads, and double-checked locking.
+Requires Java 21+. Run with `java FileName.java`.
+
+## PoolTiming.java
+Runs two 5-second tasks on:
+1. Fixed pool with 1 thread (control): ~10s
+2. Fixed pool with 2 threads: ~5s
+3. Virtual-thread-per-task executor: ~5s
+
+Shows parallel execution through elapsed time and thread names.
+Virtual threads shine with many blocking tasks (e.g. 10,000 x 1s sleeps).
+
+## LazyCache.java
+Lazy-loaded cache using double-checked locking with a `volatile` field.
+50 virtual threads are released together with `CountDownLatch`; `load()`
+should run exactly once.
+
+Experiments:
+- Without the lock and second check, `load()` runs many times.
+- Without `volatile`, safe publication is not guaranteed.
+
+## Key takeaways
+- `volatile` = visibility + ordering, not atomicity.
+- DCL needs: volatile field, local copy, two null checks, synchronized.
+- Prefer the holder idiom or `computeIfAbsent` in new code.
+- This mirrors a production bug where several threads initialized the same resource.

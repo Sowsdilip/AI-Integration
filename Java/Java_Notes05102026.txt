@@ -1,0 +1,22 @@
+Executors
+
+newFixedThreadPool(n): n platform threads. Tasks beyond n wait in a queue.
+newVirtualThreadPerTaskExecutor() (Java 21+): one cheap virtual thread per task, no pool-size tuning. Best for many blocking I/O tasks, not CPU-bound work.
+ExecutorService is AutoCloseable since Java 19, so try-with-resources waits for tasks and shuts down.
+Timing proof: two 5s tasks take about 5s in parallel and about 10s on 1 thread.
+
+Java syntax learned
+
+var (Java 10+): compile-time type inference, still statically typed, local variables only.
+int a = 1, b = 2; is legal, but not with var.
+System.nanoTime() is for measuring durations, / 1e9 converts to seconds.
+printf: %s string, %.1f one decimal, %n newline.
+
+Double-checked locking (DCL)
+
+Pattern: check without lock, lock, check again, initialize, assign.
+Second check: several threads can pass the first check at once. After getting the lock, only the first should initialize.
+volatile is required for safe publication.
+Copy the field into a local variable to avoid extra volatile reads.
+Alternatives: holder idiom, ConcurrentHashMap.computeIfAbsent.
+Java 21-23: blocking inside synchronized can pin a virtual thread's carrier. Fixed in Java 24.
