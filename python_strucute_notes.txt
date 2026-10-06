@@ -1,0 +1,39 @@
+Python project structure — the real answer to your Java comparison
+
+This is a good question to lock down now rather than later. Here's the direct mapping:
+
+Java: package = folder, class = file (mostly), import pulls in a specific class from a specific package path.
+
+Python: package = folder (with __init__.py, which you already did this week), module = file (not class — a Python file can hold multiple functions/classes, or just loose functions, no requirement to match file name to a single class). import pulls in a module or specific names from it.
+
+AI-Integration/
+├── semantic_cache/              ← package (folder)
+│   ├── __init__.py
+│   ├── similarity.py            ← module (file) — holds cosine_similarity function
+│   └── semantic_with_fastapi.py ← module (file) — holds FastAPI app, CacheEntry class, etc.
+
+Naming conventions (Python's actual standard, from PEP 8 — Python's official style guide):
+
+Packages/modules (folders/files): lowercase, words separated by underscores — semantic_cache, cache_service.py. Not SemanticCache or semanticCache (your Semantic_Cache folder with a capital letter is a small deviation worth fixing eventually, though it works fine functionally).
+Classes: PascalCase — CacheEntry, AnswerResponse (you've already been doing this correctly).
+Functions/variables: snake_case — find_best_match, cosine_similarity (also already correct).
+
+No strict "one class per file" rule — unlike Java's common convention (though even Java doesn't require it). Python projects often group related small things together in one module, and split into separate files mainly when a file grows large or when you want to control import weight (exactly why we split cosine_similarity into its own lightweight similarity.py).
+
+Access modifiers — Python's answer, and it's a real philosophical difference
+
+Python has no enforced public/private/protected keywords at all. Instead, it uses naming convention as a signal, trusted rather than enforced:
+
+python
+class CacheService:
+    def __init__(self):
+        self.cache = []          # "public" — no leading underscore, freely accessible
+        self._internal_count = 0 # "protected"-ish — single underscore, convention: "internal use, please don't touch from outside"
+        self.__secret_key = "x"  # "private"-ish — double underscore, triggers name mangling (real but weak enforcement)
+No underscore — intended as public, freely accessible from anywhere
+Single underscore (_name) — pure convention, meaning "internal/implementation detail, don't rely on this from outside the class/module" — but Python does nothing to stop you from accessing it anyway
+Double underscore (__name) — triggers name mangling: Python actually renames it internally to _ClassName__name, making accidental access harder (not impossible) — closest thing Python has to real enforcement, but it's still not true privacy, just friction
+
+The philosophy, worth understanding explicitly, since it ties back to your very first "Python feels like a careless intern" reaction from day one: Python's community motto is often summarized as "we're all consenting adults here" — the language trusts developers to respect conventions rather than mechanically enforcing them with the compiler, unlike Java's private being a hard wall the compiler enforces. This is exactly the same trade-off we discussed days ago (flexibility vs. enforced safety), just showing up again in a new spot.
+
+Practical takeaway for your code: use a single leading underscore for anything you consider "internal" to a module/class (like an internal helper function not meant to be called from outside), and trust that convention rather than expecting Python to block misuse the way Java's private would.

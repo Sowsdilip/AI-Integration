@@ -297,3 +297,80 @@ Experiments:
 - DCL needs: volatile field, local copy, two null checks, synchronized.
 - Prefer the holder idiom or `computeIfAbsent` in new code.
 - This mirrors a production bug where several threads initialized the same resource.
+
+Day 11 semantic_cache with mock for testing and python package structure
+=========================================================================
+
+## 1. Testing with pytest and mocks (Semantic Cache)
+- Fixtures: `@pytest.fixture(autouse=True)` clears the cache before and after every
+  test (code after `yield` is teardown).
+- Mocking the model: `patch.object(embed_model, "encode")` replaces the real model,
+  so tests are fast and deterministic. Set `return_value` to control the embedding.
+- The mock returns the **embedding**. The **answer** comes from the `CacheEntry`
+  that `find_best_match` selects.
+- Inspect a mock: `.return_value`, `.call_args`, `.call_args_list`, `.call_count`,
+  `.assert_called_once()`.
+- Float comparisons: use `pytest.approx(1.0)`, not `== 1.0`.
+- Assert before using a value (`assert match is not None`, then `match.answer`).
+- Print visibility: `pytest -s` or `pytest -rP`. Prefer asserts over prints.
+- Tests I wrote: empty cache, exact match, dissimilar question, best of several.
+
+## Run commands
+```bash
+java PoolTiming.java
+java LazyCache.java
+python -m pytest -v
+python -m pytest -s -v
+
+## 2. Python package structure
+
+| Term | Meaning |
+|---|---|
+| Module | A single `.py` file |
+| Package | A directory of modules, normally with an `__init__.py` |
+| Import path | Where Python looks for modules (`sys.path`, starting with the script's directory or the current directory) |
+
+Example layout:
+
+```
+project/
+├── Semantic_Cache/
+│   ├── __init__.py
+│   └── semantic_with_fastapi.py
+└── tests/
+    └── test_semantic_cache.py
+```
+
+```python
+from Semantic_Cache.semantic_with_fastapi import find_best_match   # absolute import
+from .utils import helper                                          # relative import (inside a package)
+```
+
+Key points:
+- `__init__.py` marks a directory as a regular package. It can be empty, or it can
+  re-export names to shorten imports. Since Python 3.3 folders without it still work
+  as "namespace packages", but adding it is clearer and avoids test-discovery surprises.
+- Importing a module **executes its top-level code once**, then caches it in
+  `sys.modules`. In the cache project, importing `semantic_with_fastapi` loads the
+  embedding model, which is why test startup is slow.
+- `if __name__ == "__main__":` runs code only when the file is executed directly,
+  not when it is imported.
+- Run from the project root. Use `python -m pytest` or `python -m package.module`
+  so the root is on the import path. This fixes most `ModuleNotFoundError`s.
+- Absolute imports are preferred. Relative imports only work inside a package.
+
+## 3. Java classes vs Python modules
+
+| | Java | Python |
+|---|---|---|
+| Unit of code | Class (everything lives in a class) | Module (a file); functions and variables can sit at top level |
+| File rule | One public class per file; file name must match the class name | Any number of classes/functions per file; no name rule |
+| Package | `package com.x;` declaration must match the directory path | Directory (+ `__init__.py`) |
+| Import | Compile-time name lookup; runs no code | Runtime; executes the module the first time |
+| Compiled form | `.class` bytecode files | `.pyc` cache, handled automatically |
+| Access control | `public/private/protected/package-private` | Convention only (`_name` means "internal") |
+| Singleton-like state | `static` fields, initialized when the class is first used | Module-level variables, created once on first import |
+
+Takeaway: a Python module behaves like a Java class with only static members.
+Both initialize lazily on first use, which is the same idea as the lazy cache
+(and why the holder idiom works in Java).
