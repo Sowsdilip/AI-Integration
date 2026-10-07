@@ -374,3 +374,74 @@ Key points:
 Takeaway: a Python module behaves like a Java class with only static members.
 Both initialize lazily on first use, which is the same idea as the lazy cache
 (and why the holder idiom works in Java).
+
+Day 12 recap and refresh
+========================
+
+# FastAPI, Pydantic, pytest, Semantic Cache: Notes
+
+## FastAPI
+- `async def` runs on the event loop. `await` frees it for other requests.
+- Plain `def` runs in a worker thread pool, so blocking calls are safe there.
+- A blocking call inside `async def` freezes the whole event loop. Use `def`
+  or `asyncio.to_thread(...)` for `embed_model.encode()`.
+- "Invalid body returns 422 in FastAPI (400 in Spring by default); both are valid, and the handler is customizable." FASTApi build
+- `Depends()` is dependency injection (shared model/cache). Tests swap it with
+  `app.dependency_overrides`.
+
+## Pydantic
+- Validates and coerces at runtime: `"5"` becomes `5`; `"abc"` raises an error.
+- Unlike `dict`/`dataclass`: enforced types, `model_dump()`, JSON schema for /docs.
+
+## pytest
+- Test endpoints in-process: `TestClient(app)`, no server needed.
+- Fixture scopes: function (default), module, session. Use session for a slow
+  read-only model, function for mutable state like the cache.
+- Mock the embedding model for fast, deterministic, isolated unit tests; add a
+  separate integration test with the real model.
+
+## Semantic cache
+- Threshold too low: wrong hits. Too high: needless misses.
+- Tune it on labeled similar/different question pairs.
+- Concurrency: identical simultaneous questions both miss (cache stampede).
+  Same check-then-act race as the Java DCL bug. Fix with a lock / in-flight tracking.
+- Python has no `volatile`. The GIL covers single operations, not check-then-act.
+- Scaling: O(n) scan, so use a NumPy matrix, then FAISS/vector DB. Add LRU/TTL eviction.
+
+## To revise
+- `Depends()` and `dependency_overrides`
+- `TestClient` basics
+- HTTP status codes (400 vs 422)
+- Fixture scopes with examples
+
+# Java Collections Internals: equals/hashCode, HashMap, ConcurrentHashMap
+
+## equals / hashCode
+- Contract: equal objects must have equal hash codes. The reverse isn't required.
+- hashCode picks the bucket, equals confirms the match inside it.
+- Override only equals: equal objects land in different buckets, so lookups miss.
+- **Override vs overload:** `equals(Point p)` does NOT override `equals(Object)`.
+  HashMap/HashSet call `equals(Object)`. Always use `@Override`.
+- Records (Java 16+) generate correct equals/hashCode.
+- `==` compares references; `.equals()` compares per the class. `new String("a") == "a"`
+  is false (heap object vs pooled literal). Always use equals for strings.
+- Keys must be immutable: mutating a field used by hashCode makes the entry unfindable.
+
+## HashMap put()
+1. `hash = h ^ (h >>> 16)`  2. `index = (n-1) & hash`
+3. Empty bucket: store node. Otherwise walk chain: same hash + equals means replace value; else append.
+4. `++size > capacity * 0.75` triggers resize (double and redistribute).
+- Capacity is a power of two so indexing is a bit mask, and resize moves entries cheaply.
+- Chain of 8+ nodes with capacity >= 64 becomes a red-black tree (O(n) to O(log n)); reverts at 6.
+
+## Thread safety
+- HashMap shared across threads: lost updates, resize corruption, stale reads.
+- `Hashtable` / `synchronizedMap`: one lock for the whole map.
+- `ConcurrentHashMap` (Java 8+): lock-free reads, CAS for empty buckets, locks only the
+  head node of one bucket otherwise. No null keys or values.
+- Check-then-act still needs atomic methods: `computeIfAbsent`, `merge`.
+
+## To revise
+- Load factor and resize details
+- Mutable keys in HashSet
+- Write a correct equals/hashCode by hand, then compare with a record

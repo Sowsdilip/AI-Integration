@@ -1,0 +1,47 @@
+
+all-MiniLM-L6-v2 is an embedding model (a sentence encoder). It maps text to a fixed-length vector (384 dimensions) so that texts with similar meaning land close together in vector space. It doesn't produce text; its output is only used for comparison, such as cosine similarity.
+
+claude-haiku-4-5 is a generative LLM. Given a prompt, it produces new text one token at a time, so its output is language: an answer, a summary, code.
+
+Where your wording can improve
+You said	Better term
+"convert prompts to embeddings"	encode text into dense vectors (embeddings)
+"based on meanings"	captures semantic similarity: similar meaning means a small distance between vectors
+"generation model"	generative LLM (autoregressive: predicts the next token)
+"give prompt, it gives answer"	takes a prompt and generates a completion
+The key contrast
+	Embedding model	Generative model
+Output	A vector of numbers (fixed size)	Text (variable length)
+Question it answers	"How similar are these two texts?"	"What should I say in response?"
+Deterministic?	Yes, same input gives the same vector	No, sampling can vary the output
+Size, cost, speed	Tiny (~22M parameters), runs locally in milliseconds	Large, API call, slower, billed per token
+Typical uses	Semantic search, caching, clustering, retrieval for RAG	Q&A, writing, reasoning, code
+How they fit together in your Semantic Cache
+The embedding model turns the incoming question into a vector.
+find_best_match compares it against cached question vectors using cosine similarity.
+Cache hit (score above your threshold): return the stored answer. No LLM call, so it's cheap and fast.
+Cache miss: call Haiku to generate the answer, then store it with its embedding.
+
+One sentence for your notes: the embedding model decides whether we've seen this question before, and the generative model only runs when we haven't.
+
+Two details worth remembering
+An embedding model can't answer questions, even if the answer is "obvious" from the text. It only measures closeness.
+Embeddings from different models aren't comparable. Vectors from MiniLM and from another model live in different spaces, so if you ever swap the embedding model, you must re-embed your whole cache.
+
+Cosine similarity ranges from -1 to 1. Near-identical meaning scores roughly 0.85-1.0 (1.0 only for identical or same-direction vectors). Unrelated text scores around 0 to 0.2. Negative values are rare for sentence embeddings.
+
+One line for notes: Cosine similarity measures the angle between vectors (-1 to 1); for sentence embeddings, high means similar meaning, about 0 means unrelated, and the cache threshold must be tuned on real data.
+
+Refined answer:
+
+cosine_similarity is a pure function: numbers in, number out, no dependencies, so it can be tested directly. find_best_match depends on embed_model.encode(), a heavy external component. Mocking it makes the test fast (no model inference), deterministic (we choose the exact vector, so we know the expected score), and isolated (it tests only our matching logic, not the model's quality).
+
+Corrections:
+
+Determinism is the biggest reason. With the real model you can't predict that "any question" gives exactly [1.0, 0.0, 0.0], so you couldn't assert score == 1.0 or build orthogonal cases. The mock lets us construct the scenario precisely.
+Not specific to negative scenarios. Mocking helps every test of that function, including the happy path.
+Isolation: if the real model were used and a test failed, you wouldn't know whether your logic or the model caused it.
+
+Caveat for notes: mocks prove your logic is correct, not that the real model behaves well. You still want a small integration test with the real model (e.g. two paraphrases score above your threshold) to catch that.
+
+One line: Mock external or slow dependencies so unit tests are fast, deterministic, and test only your own logic; use a separate integration test for the real thing.
