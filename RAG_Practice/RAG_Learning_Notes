@@ -1,0 +1,9 @@
+Right connection back to the context-stuffing issue. Here’s the sharper version:
+
+A single embedding vector for an entire document averages/compresses all its meaning into one point in vector space. If your trade finance policy doc covers LC issuance, amendments, and discrepancy handling all in one file, one embedding for the whole thing is a blurry average of all three topics — not precisely “about” any of them. A query about discrepancy handling won’t match that vector well, because it’s diluted by the other two topics.
+
+Chunk it (e.g. one section = one chunk), and each chunk gets its own precise embedding — now a discrepancy-handling query matches the discrepancy-handling chunk specifically. That’s also what makes citation possible: you can point to “this exact paragraph,” not “somewhere in this 40-page doc.”
+
+Chunking — Solid, good foundation carried over.
+
+Next question — the actual engineering decision: Q: If you chunk by a fixed size (say, 500 characters per chunk), what goes wrong, and why do most RAG implementations add overlap between consecutive chunks (e.g. 500 chars with 50 char overlap)?

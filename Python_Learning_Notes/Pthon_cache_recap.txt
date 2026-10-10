@@ -45,3 +45,14 @@ Isolation: if the real model were used and a test failed, you wouldn't know whet
 Caveat for notes: mocks prove your logic is correct, not that the real model behaves well. You still want a small integration test with the real model (e.g. two paraphrases score above your threshold) to catch that.
 
 One line: Mock external or slow dependencies so unit tests are fast, deterministic, and test only your own logic; use a separate integration test for the real thing.
+
+A platform thread is a thin wrapper over an OS thread: it reserves a fixed stack (about 1 MB) and is scheduled by the OS, so you can only have thousands. A virtual thread is managed by the JVM, and its stack lives on the heap as small, growable objects (starting at a few hundred bytes to KBs), so you can have millions. It runs by being mounted on a carrier thread (a platform thread from a ForkJoinPool). When it blocks on I/O or sleep, the JVM unmounts it and the carrier immediately runs another virtual thread. When the wait ends, the virtual thread is mounted again, possibly on a different carrier.
+
+Corrections:
+
+"Derail" should be "unmount" (the JVM saves the virtual thread's stack to the heap and frees the carrier).
+The real source of "lightness" is cheap creation and memory, plus cheap blocking. Blocking a platform thread ties up an OS thread and its stack. Blocking a virtual thread costs almost nothing.
+Not faster for CPU work. Virtual threads help when tasks mostly wait (I/O, sleeps, network calls). CPU-bound work is still limited by the number of cores.
+Pinning caveat: in Java 21-23, blocking inside synchronized can pin the virtual thread to its carrier so it can't unmount. This was fixed in Java 24.
+
+One line: Virtual threads are JVM-scheduled, heap-stored and unmount when blocked, so a few carrier threads can serve millions of waiting tasks, while platform threads each hold an OS thread and a large stack.

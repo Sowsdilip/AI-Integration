@@ -445,3 +445,68 @@ Day 12 recap and refresh
 - Load factor and resize details
 - Mutable keys in HashSet
 - Write a correct equals/hashCode by hand, then compare with a record
+
+
+## Phase 2: FDE Track
+
+### Day 1 Recap (Oct 10, 2026)
+
+Reviewed 28 gap areas from the FDE self-audit against actual knowledge, via live Q&A.
+
+**Solid:** Idempotency, Background jobs, Webhooks, Embeddings, Retrieval relevance,
+Structured outputs, Customer discovery
+
+**Needs Refresh** (concept right, details/vocabulary thin): Retry/backoff, REST APIs,
+OAuth, Model APIs (FastAPI's actual role), Tool calling, Prompt/context design,
+Hybrid search, Workflow orchestration, Eval dataset design, Tool-call success rate,
+Hallucination rate, Latency/cost tradeoffs, Java interview fluency, Solution design
+docs, Architecture diagrams, Demo/rollout/adoption
+
+**Real Gap** (new, no hands-on yet): SQL joins, Docker Compose, AWS managed deploy
+(ECS/Fargate), RAG end-to-end (citations/groundedness), Classification accuracy,
+Groundedness
+
+**Key corrections from today:**
+- Tool/function calling ≠ calling your own functions — it's the LLM requesting
+  *your* code run something, via a structured `tool_use` block, then you feed the
+  result back
+- REST = resource URLs + stateless + standard verbs, not "uses HTTP" or "returns JSON"
+- OAuth: code (front-channel, browser) vs token exchange (back-channel, server +
+  client_secret) — separation protects the token from leaking via the browser
+- Groundedness and hallucination rate are near-inverse metrics — both check if
+  claims trace back to retrieved source text
+- Hybrid search = semantic (embeddings) + keyword (BM25) combined, needed because
+  pure embeddings miss exact IDs/codes
+
+**Real Gaps feed directly into the Core Project Roadmap:**
+RAG citations + hybrid search → Stage 2. Docker Compose + AWS (ECS/Fargate) →
+Stage 5. SQL joins → standalone drill before Stage 2's retrieval work.
+
+Next session: Stage 2 (RAG layer) — chunking → embeddings → Chroma → retrieve →
+cite source, now with hybrid search and groundedness folded in from the start.  \
+
+### RAG Layer(Chunking + Vector Store)
+
+**Built**
+- `chunk_document()`: fixed-size chunker with overlap
+- Embedded chunks with `all-MiniLM-L6-v2` and stored them in Chroma (`PersistentClient`, cosine distance)
+- Idempotent ingestion: chunk IDs = SHA-256 of `source + content`, written with `upsert`
+- Paragraph-based chunker (`chunk_by_paragraph`) as an improvement
+
+**Bugs found and fixed**
+- Chunker used `end = chunk_size` instead of `start + chunk_size`, so every chunk after the first was empty
+- `overlap` parameter was never used; the step is now `chunk_size - overlap`
+- `import chunk_function` imported the module, not the function, so calling it failed (`TypeError: 'module' object is not callable`); fixed with `from chunk_function import chunk_document`
+- `chunk_index` metadata was a fixed value, so every result showed `#1` (still to fix)
+
+**Learnings**
+- Fixed-size chunking (500 chars) split Section 6 in two, so the "pinning" answer ranked 3rd
+- Paragraph chunking kept the section whole: the top hit improved (distance 0.516 → 0.495)
+- Stale data: re-ingesting with a new chunker left the old chunks in the store. Changing the chunking strategy means clearing the collection first
+- Duplicate check = `collection.count()` before and after ingest, not chunk sizes
+- Printing only `doc[:80]` hid correct results; always inspect full chunks
+
+**Next**
+- Split into `ingest.py` / `query.py` / `rag.py`
+- Fix `chunk_index`, clear the collection, re-ingest, rerun the test questions
+- Add delete-by-source for stale chunks
