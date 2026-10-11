@@ -510,3 +510,47 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 - Split into `ingest.py` / `query.py` / `rag.py`
 - Fix `chunk_index`, clear the collection, re-ingest, rerun the test questions
 - Add delete-by-source for stale chunks
+
+### Oct 11, 2026: RAG Layer, Day 2 (Code Structure + Answer Generation)
+
+**Java practice (new daily habit)**
+- Q: HashMap put() internals and resize → 6/10. Mixed up resize (total entries > capacity × 0.75 → table doubles)
+  with treeify (one bucket > 8 entries and capacity ≥ 64 → red-black tree)
+- Follow-up: mutable keys → 6/10. Missed the main point: changing the hashCode leaves the entry in its old bucket,
+  so get()/remove() can't find it (unreachable entry, memory leak)
+
+**Built**
+- Split code into `rag.py` (model, collection, ingest, search), `ingest.py` (run when docs change), `query.py` (question loop)
+- Fixed `chunk_index` metadata (was a constant), cleared stale chunks, printed full chunks
+- Distance threshold (`max_distance`) so search returns only relevant chunks, not always k results
+- `answer.py`: retrieved chunks → Claude API → JSON `{answer, citations}`
+- Skip the LLM call when retrieval finds nothing (no cost, no made-up answer)
+- API key loaded from `.env` via python-dotenv; `.env` added to `.gitignore`
+
+**Bugs and lessons**
+- Empty results: `query.py` ran before `ingest.py`. Query never loads data, so a guard prints "store is empty"
+- `delete_collection` doesn't belong in shared code; it would wipe the data on every import
+- Threshold filter wasn't applied because the loop still iterated the raw results instead of `hits`
+- Code changes need a script restart; a running loop keeps the old code
+- `$env:` is PowerShell syntax; cmd uses `set VAR=value` and only applies to that window
+- `AttributeError: 'ThinkingBlock' object has no attribute 'text'`: the response content is a list of blocks,
+  so filter by `type == "text"` instead of using `content[0]`
+- Defensive JSON parsing: strip ```json fences, fall back to raw text instead of crashing
+- Prompt fix ("complete answer", "partial answer if partly covered"): the pinning answer now includes the ReentrantLock fix
+
+**Results (4 test questions)**
+| Question | Result |
+|---|---|
+| What is a virtual thread? | ✅ Correct, cites #5 (Section 6, 0-based index) |
+| Explain Kafka | ✅ Not found, no API call |
+| What is pinning? | ✅ Complete after prompt fix |
+| Load factor + treeification | ❌ False negative: blocked at retrieval (threshold), LLM never called |
+
+**Open issue**
+- Multi-part question embeds far from each individual section. Next: check distances; tune the threshold,
+  or use query splitting / hybrid search (BM25) next week
+
+**Next**
+- Q3 distance diagnostic + threshold tuning
+- Delete-by-source on re-ingest
+- 10–15 question eval set (retrieval hit rate)

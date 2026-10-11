@@ -7,6 +7,7 @@ from chunk_function import chunk_by_paragraph
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 client = chromadb.PersistentClient("./chroma_db")
+client.delete_collection("docs")
 collection = client.get_or_create_collection("docs",metadata={"hnsw:space":"cosine"})
 
 
