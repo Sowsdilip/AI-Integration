@@ -554,3 +554,30 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 - Q3 distance diagnostic + threshold tuning
 - Delete-by-source on re-ingest
 - 10–15 question eval set (retrieval hit rate)
+
+
+## Oct 12, 2026 — Phase 2, Day 3 (light day)
+
+### Retry with exponential backoff
+- Retry only transient errors: 429, 529, 5xx, timeouts. Never 400/401.
+- Delay = min(max_delay, base * 2^attempt) + random jitter
+- Jitter prevents many clients retrying at the same time
+- Always cap max attempts and max delay
+- Java equivalent: Spring `@Retryable` + `@Backoff(multiplier = 2)`
+- Semantic cache project: retry the Claude API call; for the cache,
+  fail open (skip cache on error, call API directly) instead of retrying
+- Similarity threshold tuning = hit quality, not reliability
+
+### HashMap vs ConcurrentHashMap
+- HashMap: not thread-safe; fail-fast iterators (throw ConcurrentModificationException)
+- ConcurrentHashMap (Java 8+):
+  - Empty bucket → CAS insert (no lock)
+  - Occupied bucket → `synchronized` on first node only
+  - Reads mostly lock-free → scales well for read-heavy loads
+  - Weakly consistent iterators (no CME)
+- No null keys/values: `get()` returning null would be ambiguous
+  (absent vs null value), and `containsKey()` + `get()` isn't atomic
+  across threads
+
+### Pending
+- Write `call_with_retry()` in plain Python + test with a fake failing function
