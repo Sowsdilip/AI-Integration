@@ -581,3 +581,45 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 
 ### Pending
 - Write `call_with_retry()` in plain Python + test with a fake failing function
+
+## Oct 13, 2026 — Phase 2, Day 2
+
+### Retry with backoff (implemented)
+- Built `call_with_retry()` in plain Python: loop + try/except per attempt
+- Exit on success with `return`; re-raise on last attempt; no sleep after final attempt
+- Delay = min(max_delay, base * 2^attempt) + random.uniform(0, 0.5) → ~1s, 2s, 4s
+- Retry only `TransientError`; anything else (e.g. ValueError) propagates immediately (fail fast)
+- Tested: fails twice then succeeds ✅ | always fails → raises after 4 attempts ✅
+
+### Python lessons learned
+- Custom exception: `class TransientError(Exception): pass` (like `extends RuntimeException`)
+- Exception raised inside an `except` block is NOT caught by a sibling `except` (same as Java)
+- Can't raise a string — only exception objects
+- `raise X(...) from e` keeps the original cause (like Java's `new Exception(msg, cause)`)
+- Pass a function without `()` → `fn` (like `this::method`); `fn()` calls it immediately
+- Function needing args: `lambda: call_claude_api("prompt")` or forward `*args, **kwargs`
+- Python runs top to bottom: a name must exist at the moment the call runs (Java compiles whole class first)
+- Convention: snake_case, not camelCase
+- In production: decorators (`@retry`), the `tenacity` library, or the SDK's built-in retries
+  (`anthropic.Anthropic(max_retries=4)`)
+
+### Idempotency
+- Idempotent = doing it twice has the same effect as doing it once (GET/PUT/DELETE yes, POST no)
+- Fix for POST: client sends an `Idempotency-Key` (UUID); server stores processed keys and
+  returns the saved response on repeats
+- Client must generate the key ONCE and reuse it on every retry
+- Without server support: do a status inquiry (check by client reference) before retrying
+- Claude API call: safe to retry (no side effects), but costs tokens and wording may differ
+- Claude doesn't cache answers — my semantic cache does
+- Becomes critical with tool calling: the tool wrapper (MCP layer) generates the key;
+  the Spring API enforces it (unique constraint + stored response)
+
+### Java: equals()/hashCode() contract
+- equal objects → MUST have equal hashCodes; unequal objects MAY collide
+- Only equals() overridden → equal keys land in different buckets → get() returns null, duplicates
+- Only hashCode() overridden → same bucket, but identity equals never matches → same problems
+- Bucket lookup order: hash → `==` → equals()
+- Java 8+: bucket with more than 8 nodes → red-black tree (O(n) → O(log n))
+- Keys should be immutable: mutating a hashed field after put() makes the entry unfindable
+
+### Carry-over from Oct 12: done ✅
