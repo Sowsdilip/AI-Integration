@@ -13,13 +13,16 @@ collection = client.get_or_create_collection("docs",metadata={"hnsw:space":"cosi
 
 def ingest(text:str,source:str):
     chunks=chunk_by_paragraph(text)
-    ids = [hashlib.sha256(f"{source}:{c}".encode()).hexdigest() for c in chunks]  # idempotent
+    if not chunks:
+       return
+    ids = [hashlib.sha256(f"{source}:{i}:{c}".encode()).hexdigest() for i,c in enumerate(chunks)]  # idempotent
     embeddings = model.encode(chunks).tolist()
+    collection.delete(where={"source": source})
     collection.upsert(
         ids = ids,
         documents = chunks,
         embeddings = embeddings,
-        metadatas = [{"source":source,"chunk_index":i} for i in range(len(chunks))]
+        metadatas = [{"source":source,"chunk_index":i} for i,c in enumerate(chunks)]
     )
 
 def search(query:str,k:int = 4, max_distance:float = 0.7,verbose:bool = False):

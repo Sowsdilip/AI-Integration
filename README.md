@@ -623,3 +623,24 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 - Keys should be immutable: mutating a hashed field after put() makes the entry unfindable
 
 ### Carry-over from Oct 12: done ✅
+
+## Oct 14, 2026: RAG Layer, Step 1 (Ingest)
+
+**Done**
+- Built folder ingest: reads all `.txt` files from `docs/` with `pathlib`, then chunks, embeds (all-MiniLM-L6-v2), and upserts each one into Chroma
+- Made ingest idempotent: SHA-256 IDs from `source:index:chunk`, plus delete-by-source before upsert so stale chunks are removed when a doc changes
+- Guard for empty files (`if not chunks: return`)
+- Switched the collection to cosine distance (`hnsw:space: cosine`)
+- Verified: 4 docs → 17 chunks; re-run → added=0
+
+**Learned**
+- `enumerate` (index + item), slicing `d[:150]`, `Path.glob` / `read_text`, `if __name__ == "__main__"`
+- Chroma's `query_texts` uses its own embedding model, so use `query_embeddings` with the same model as ingest
+- Delete + upsert isn't atomic
+
+**Found**
+- One chunk is 1,130 chars, near MiniLM's ~256-token limit, so its tail may be truncated. Add a max chunk size later.
+
+**Java Q of the day:** HashMap vs LinkedHashMap vs TreeMap. Gap: TreeMap (sorted, O(log n), NavigableMap) and the LinkedHashMap LRU cache.
+
+**Next:** retrieval test with 3 queries, then pass the top-k chunks to Claude (generation).
