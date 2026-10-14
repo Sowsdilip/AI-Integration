@@ -1,0 +1,37 @@
+Documentary Collections and Incoterms
+
+Documentary collections
+A documentary collection is a payment method in which the exporter's bank (the remitting bank) sends shipping documents to the importer's bank (the collecting or presenting bank), which releases them to the importer only against payment or acceptance. Banks act only as channels for the documents and do not guarantee payment. This makes collections cheaper and simpler than letters of credit but riskier for the exporter. Collections are usually governed by the ICC Uniform Rules for Collections, publication No. 522 (URC 522).
+
+Documents against payment (D/P)
+Under D/P, the collecting bank releases the documents to the importer only when the importer pays the amount due. The importer cannot take possession of the goods without the bill of lading, so the exporter keeps control of the goods until payment.
+
+Documents against acceptance (D/A)
+Under D/A, the collecting bank releases the documents when the importer accepts a bill of exchange (draft) promising to pay on a future date, for example 60 days after sight. The importer gets the goods before paying, so the exporter relies on the importer's promise to pay at maturity. The risk for the exporter is that the importer does not pay when the draft matures.
+
+When collections are used
+Collections suit trading partners who have an established relationship, stable countries, and goods that can be resold if the importer refuses the documents. If the importer refuses, the exporter may have to pay for storage, return shipping, or sell the goods at a discount in the destination country.
+
+Comparison of payment methods by risk
+From the exporter's point of view, the payment methods from lowest to highest risk are: cash in advance, confirmed letter of credit, unconfirmed letter of credit, documents against payment, documents against acceptance, and open account. From the importer's point of view, the order is reversed: open account is the safest and cash in advance is the riskiest.
+
+Incoterms 2020
+Incoterms are trade terms published by the International Chamber of Commerce that define the responsibilities of seller and buyer for delivery, costs, and risk transfer. The current version is Incoterms 2020, which contains 11 rules. Incoterms do not deal with transfer of ownership or payment terms.
+
+Rules for any mode of transport
+EXW (Ex Works): the seller makes the goods available at its premises; the buyer handles almost everything, including export clearance.
+FCA (Free Carrier): the seller delivers the goods, cleared for export, to the carrier named by the buyer.
+CPT (Carriage Paid To): the seller pays carriage to the named destination, but risk passes when goods are handed to the first carrier.
+CIP (Carriage and Insurance Paid To): like CPT, but the seller also buys insurance. Under Incoterms 2020, CIP requires a higher level of cover (Institute Cargo Clauses A).
+DAP (Delivered at Place): the seller delivers the goods ready for unloading at the named destination.
+DPU (Delivered at Place Unloaded): the seller delivers and unloads the goods at the named destination. DPU replaced DAT from Incoterms 2010.
+DDP (Delivered Duty Paid): the seller bears all costs and risks, including import duties and clearance.
+
+Rules for sea and inland waterway transport
+FAS (Free Alongside Ship): the seller places the goods alongside the vessel at the named port of shipment.
+FOB (Free On Board): the seller loads the goods on board the vessel; risk passes once the goods are on board.
+CFR (Cost and Freight): the seller pays freight to the destination port, but risk passes when the goods are on board at the port of shipment.
+CIF (Cost, Insurance and Freight): like CFR, but the seller also buys insurance, with minimum cover (Institute Cargo Clauses C).
+
+Incoterms and letters of credit
+The Incoterm in the sales contract affects which documents the LC should call for. For example, under CIF the beneficiary must present an insurance document, while under FOB the buyer arranges insurance, so the LC should not require one from the seller.

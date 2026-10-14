@@ -1,0 +1,26 @@
+Bank Guarantees in Trade Finance
+
+A bank guarantee is an undertaking by a bank (the guarantor) to pay a stated amount to a beneficiary if the party on whose behalf the guarantee is issued (the applicant or principal) fails to meet a contractual obligation. Unlike a letter of credit, which is the expected means of payment, a guarantee is normally a fallback that is used only when something goes wrong.
+
+Demand guarantees and URDG 758
+Most international bank guarantees are demand guarantees. The beneficiary can claim payment simply by making a demand that complies with the terms of the guarantee, without having to prove that the applicant actually defaulted. The ICC Uniform Rules for Demand Guarantees, publication No. 758 (URDG 758), in force since 1 July 2010, are the most widely used rules for these instruments. Like letters of credit, demand guarantees are independent of the underlying contract.
+
+Common types of guarantees
+A bid bond (tender guarantee) protects the party running a tender if a bidder withdraws its bid or refuses to sign the contract after winning. It is typically 1 to 5 percent of the bid value.
+A performance guarantee protects the buyer or project owner if the contractor fails to perform the contract. It is typically 5 to 10 percent of the contract value.
+An advance payment guarantee protects a buyer who pays an advance to the seller. If the seller does not deliver, the buyer can claim back the advance. The amount often reduces as deliveries are made.
+A retention guarantee allows a contractor to receive retention money that the owner would otherwise hold back until the end of the warranty period.
+A financial guarantee secures the repayment of a loan or other financial obligation.
+A customs guarantee secures the payment of customs duties to the customs authority.
+
+Direct and indirect guarantees
+In a direct guarantee, the applicant's bank issues the guarantee directly to the beneficiary. In an indirect guarantee, the applicant's bank (the instructing party) issues a counter-guarantee to a local bank in the beneficiary's country, and that local bank issues its own guarantee to the beneficiary. Indirect guarantees are common when the beneficiary, such as a government body, requires a guarantee from a local bank. Guarantees and counter-guarantees are usually issued by SWIFT MT760.
+
+Expiry and claims
+A guarantee should state an expiry date or an expiry event. A claim must be presented on or before expiry. Under URDG 758, the guarantor has five business days following the day of presentation to examine a demand and decide whether it complies. An "extend or pay" demand is a claim in which the beneficiary asks either for the guarantee to be extended or for payment to be made.
+
+Guarantees versus standby letters of credit
+A standby letter of credit serves the same purpose as a demand guarantee. Standbys are more common in the United States, where historically banks were restricted from issuing guarantees. Standbys are often issued subject to ISP98 (International Standby Practices) or UCP 600.
+
+Risks for the applicant
+Because a demand guarantee is paid on a compliant demand, the applicant is exposed to unfair or abusive calls. The applicant's main protection is careful drafting of the guarantee terms, for example requiring a statement of breach or supporting documents with the demand.

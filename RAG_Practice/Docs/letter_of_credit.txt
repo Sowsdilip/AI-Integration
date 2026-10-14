@@ -1,0 +1,25 @@
+Letter of Credit (LC) - Overview
+
+A letter of credit is a written undertaking by a bank (the issuing bank) to pay the seller (the beneficiary) a stated amount, provided the seller presents documents that comply with the terms and conditions of the credit. The buyer who requests the bank to issue the credit is called the applicant. The LC shifts payment risk from the buyer to the issuing bank, which is why it is widely used in international trade where buyer and seller do not know each other well.
+
+Parties involved
+The applicant is usually the importer. The beneficiary is usually the exporter. The issuing bank issues the credit at the request of the applicant. The advising bank, located in the beneficiary's country, authenticates the credit and advises it to the beneficiary without taking on any payment obligation. A confirming bank adds its own undertaking to pay, in addition to the issuing bank's undertaking. A nominated bank is a bank authorised to pay, accept drafts, or negotiate under the credit.
+
+Types of letters of credit
+An irrevocable LC cannot be amended or cancelled without the agreement of the issuing bank, the confirming bank (if any), and the beneficiary. Under UCP 600, all credits are irrevocable. A confirmed LC carries the undertaking of a second bank, usually in the exporter's country, which protects the beneficiary against the country risk and credit risk of the issuing bank. A sight LC is payable as soon as compliant documents are presented. A usance (deferred payment or acceptance) LC is payable at a future date, for example 90 days after the bill of lading date. A transferable LC allows the first beneficiary, often a trader or middleman, to transfer all or part of the credit to one or more second beneficiaries. A standby LC (SBLC) works as a backup payment guarantee and is drawn only if the applicant fails to perform.
+
+Lifecycle of a letter of credit
+1. The buyer and seller agree in their sales contract to settle payment by LC.
+2. The buyer applies to the issuing bank, which checks the buyer's credit limit and issues the LC, usually by SWIFT MT700.
+3. The advising bank authenticates and advises the LC to the seller.
+4. The seller ships the goods and prepares the documents required by the credit, such as the commercial invoice, bill of lading, packing list, certificate of origin, and insurance certificate.
+5. The seller presents the documents to the nominated or confirming bank.
+6. The bank examines the documents. If they comply, the bank pays or commits to pay and forwards the documents to the issuing bank.
+7. The issuing bank reimburses the paying bank and debits the buyer's account.
+8. The buyer receives the documents and uses the bill of lading to collect the goods from the carrier.
+
+Amendments
+Any change to the amount, expiry date, shipment date, or documents required is made through an amendment, sent by SWIFT MT707. The beneficiary may accept or reject an amendment. Partial acceptance of a single amendment is not allowed.
+
+Key risks
+For the seller, the main risk is presenting discrepant documents, which removes the bank's obligation to pay. For the buyer, the main risk is that banks deal only with documents, not goods, so compliant documents must be paid even if the goods are not as expected. For banks, the main risks are the credit risk of the applicant and fraud involving forged documents.

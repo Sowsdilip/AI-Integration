@@ -1,0 +1,27 @@
+UCP 600 - Key Rules on Document Examination
+
+The Uniform Customs and Practice for Documentary Credits, ICC Publication No. 600 (UCP 600), is the set of rules published by the International Chamber of Commerce that governs most letters of credit worldwide. It came into effect on 1 July 2007 and replaced UCP 500. UCP 600 applies to a credit only when the credit expressly states that it is subject to these rules.
+
+Banks deal with documents, not goods
+Under UCP 600, banks deal with documents and not with the goods, services, or performance to which the documents relate. A bank's decision to pay depends only on whether the documents presented comply on their face with the terms of the credit. This is known as the principle of independence: the credit is separate from the underlying sales contract.
+
+Time for examination
+A nominated bank, a confirming bank (if any), and the issuing bank each have a maximum of five banking days following the day of presentation to determine whether a presentation is complying. This period is not shortened or otherwise affected by the expiry date or the last day for presentation falling on or after the date of presentation.
+
+Period for presentation
+A presentation that includes one or more original transport documents must be made by or on behalf of the beneficiary not later than 21 calendar days after the date of shipment. In any case, the presentation must not be later than the expiry date of the credit. If the credit specifies a different presentation period, that period applies instead of the 21 days.
+
+Complying presentation
+A complying presentation is a presentation that is in accordance with the terms and conditions of the credit, the applicable provisions of UCP 600, and international standard banking practice (ISBP). Data in a document does not need to be identical to data in other documents or in the credit, but it must not conflict with them.
+
+Description of goods
+The description of the goods in the commercial invoice must correspond with the description in the credit. In all other documents, the goods may be described in general terms not conflicting with their description in the credit.
+
+Discrepancies and refusal
+When a bank decides to refuse a presentation because it is not complying, it must give a single notice of refusal to the presenter. The notice must state that the bank is refusing to honour or negotiate, and it must list each discrepancy. The bank must also state what it is doing with the documents, for example holding them pending further instructions, holding them until the applicant waives the discrepancies, or returning them. The notice must be given no later than the close of the fifth banking day following the day of presentation. A bank that fails to follow these rules is precluded from claiming that the documents do not constitute a complying presentation.
+
+Common discrepancies
+Common reasons for refusal include late presentation beyond 21 days after shipment, presentation after the expiry date, the invoice amount exceeding the credit amount, inconsistent goods descriptions between documents, missing endorsements on the bill of lading, a bill of lading that is not marked "on board", insurance cover that starts after the shipment date, and missing signatures where documents must be signed.
+
+Tolerance on amount and quantity
+The words "about" or "approximately" used in connection with the amount, quantity, or unit price allow a tolerance of 10 percent more or 10 percent less. Where the credit does not state the quantity in a number of packing units or individual items, a tolerance of 5 percent more or 5 percent less in the quantity of goods is allowed, provided the drawing does not exceed the credit amount.
