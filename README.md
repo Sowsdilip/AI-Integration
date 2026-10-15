@@ -644,3 +644,35 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 **Java Q of the day:** HashMap vs LinkedHashMap vs TreeMap. Gap: TreeMap (sorted, O(log n), NavigableMap) and the LinkedHashMap LRU cache.
 
 **Next:** retrieval test with 3 queries, then pass the top-k chunks to Claude (generation).
+
+### Oct 15, 2026 — RAG: Chunking layer 
+
+**What I built**
+- `chunk_size_overlap(text, overlap, chunk_size)` — splits text into fixed-size chunks with overlap
+- Ran it on `Docs/letter_of_credit.txt`
+
+**What I learned**
+- Chunking: documents are split before embedding because models have input limits and smaller chunks retrieve more precisely
+- Overlap: repeats a few characters between chunks so ideas on a boundary aren't cut in half
+- `range(0, len(text), step)` with `step = chunk_size - overlap` controls where each chunk starts
+- Slice step (`text[a:b:n]`) picks every nth char, it does NOT chunk text
+
+**Open question**
+- Keep or drop tiny leftover chunks at the end?
+
+**Next**
+- Return chunks as dicts `{id, text, start, end, hash}`
+- Sentence-aware chunking (don't cut mid-sentence)
+
+**Evening practice**
+- `range()` never includes the stop value (like `i < n` in Java); default start is 0; negative step counts down
+- List comprehensions: `[value for x in items if condition]` — value in front, filter at the end
+- Bug I hit: `word.upper` (method object) vs `word.upper()` (call)
+- Bug I hit: `[x % 2 == 0 for x in nums]` gives booleans; filter belongs after `if`
+- Rewrote chunker as a one-liner comprehension
+
+**Java question: ConcurrentModificationException**
+- Removing from a list inside for-each → CME (iterator's modCount check fails)
+- `new ArrayList<>(List.of(...))` is mutable; `List.of(...)` alone is immutable
+- Edge case: removing the 2nd-to-last element doesn't throw; the loop exits early and silently skips the last element
+- Fixes: `Iterator.remove()` or `list.removeIf(...)`
