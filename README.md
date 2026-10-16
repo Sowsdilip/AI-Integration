@@ -676,3 +676,24 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 - `new ArrayList<>(List.of(...))` is mutable; `List.of(...)` alone is immutable
 - Edge case: removing the 2nd-to-last element doesn't throw; the loop exits early and silently skips the last element
 - Fixes: `Iterator.remove()` or `list.removeIf(...)`
+
+### Oct 16, 2026 — Chunk records with stable IDs
+
+**Built**
+- `make_chunk(text, source, size=500, overlap=50)` returns a list of dicts built with one list comprehension:
+  `{id, text, start, end, hash, source, chunk_index}`
+- `id` = sha256 of `source:start` (stable location → idempotent upsert)
+- `hash` = sha256 of chunk text (detects content change)
+- Added `main()` behind `if __name__ == "__main__":`
+
+**Bug fixed**
+- Sliced with `text[start:size]` instead of `text[start:start+size]`, so every chunk after the first was empty and had identical hashes. Chunk 0 hid the bug because `start=0` makes both slices the same.
+
+**Finding**
+- Same-length edit → only the containing chunk's hash changes.
+- Length-changing edit → every later chunk's hash changes (positions shift); IDs stay the same.
+- Takeaway: fixed-size chunking is position-sensitive; paragraph/sentence-aware chunking would limit re-embedding.
+
+**Java Q:** Fail-fast vs fail-safe iterators. ArrayList/HashMap check modCount and throw CME; ConcurrentHashMap is weakly consistent; CopyOnWriteArrayList iterates a snapshot.
+
+**Next:** tail-duplicate edge case, split chunker/ingest/query, Chroma upsert, delete-by-source, eval set.

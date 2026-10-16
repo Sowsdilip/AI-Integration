@@ -38,3 +38,37 @@
 - for-each + `list.remove()` → ConcurrentModificationException
 - Fix: `Iterator.remove()` or `list.removeIf(d -> d.equals("BL"))`
 - `List.of()` immutable; `new ArrayList<>(List.of())` mutable copy
+
+## Oct 16, 2026
+
+**enumerate**
+```python
+for i, start in enumerate(range(0, 1000, 450)):  # i = count from 0, start = value
+```
+
+**Stable ID vs content hash**
+```python
+sha(f"{source}:{start}")  # id: location -> idempotent upsert
+sha(chunk_text)           # hash: content -> detects change
+```
+
+**Slicing bug**
+```python
+text[start:size]          # wrong: absolute end
+text[start:start + size]  # right
+```
+
+**Entry point**
+```python
+if __name__ == "__main__":  # runs only when executed directly, not on import
+```
+
+**pathlib**
+```python
+f = Path("Docs") / "letter_of_credit.txt"
+f.read_text(encoding="utf-8"); f.name
+```
+
+**Tip:** "`[` not closed" error → check for a missing comma on the line above.
+
+**Java:** Fail-fast (ArrayList, HashMap: modCount → CME) vs fail-safe (ConcurrentHashMap weakly consistent, CopyOnWriteArrayList snapshot). for-each is an iterator.
