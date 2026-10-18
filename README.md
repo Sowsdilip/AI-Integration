@@ -697,3 +697,32 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 **Java Q:** Fail-fast vs fail-safe iterators. ArrayList/HashMap check modCount and throw CME; ConcurrentHashMap is weakly consistent; CopyOnWriteArrayList iterates a snapshot.
 
 **Next:** tail-duplicate edge case, split chunker/ingest/query, Chroma upsert, delete-by-source, eval set.
+
+## Day 8 — Sat Oct 17, 2026 · Paragraph-aware chunking (redo from scratch)
+
+**What I built**
+- `split_into_paras`: regex split on blank lines (`\n\s*\n`) + strip/filter
+- `merge`: greedy merge up to `max_size`; oversized paragraphs fall back to fixed-size slicing
+- `make_record`: stable id `sha(source:i)` + content hash; chunking and record-building now separate functions
+- `main()` with `__name__` guard; asserts for max size, no empty chunks, id/hash stability
+
+**Bugs I hit and fixed**
+- Checked `len(current)` instead of `len(candidate)`, so chunks could exceed the limit
+- Empty chunk pushed when the first paragraph was oversized
+- Data loss: reset `current` without flushing it first
+- Stability assert compared records with itself (could never fail)
+- `chunks = list[str]` assigned the type instead of an empty list
+- Literal `"source"` as source name → would collide ids across files
+
+**Lessons**
+- Trace loops with a table before trusting output
+- Guard clause at loop top → handle special case → `continue`
+- Test special cases at first / middle / last positions
+- A test must be able to fail
+
+**Java:** HashMap resize (threshold 12), treeify (≥8 nodes AND cap ≥64), power-of-2 indexing
+
+**Also:** created the "FDE phase" Claude Project with STATUS.md for daily continuity
+
+**Next:** eval set (12 Qs incl. not-found), re-ingest, Claude answer + citations
+
