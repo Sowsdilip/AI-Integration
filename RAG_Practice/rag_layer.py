@@ -12,6 +12,25 @@ def split_into_paras(text:str)->list[str]:
     cleaned_text = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
     return cleaned_text
 
+def get_chunks(para, max_size):
+    start = 0
+    chunks = []
+    while start<len(para):
+        window = para[start:start+max_size]
+        if start+max_size>=len(para):
+            chunks.append(window.strip())
+            break
+        else:
+            cut = window.rfind(". ")
+            if cut < max_size//2 or cut == -1:
+                cut = window.rfind(" ")
+                if cut == -1:
+                    cut = max_size-1
+            chunks.append(window[:cut+1].strip())
+            start += cut+1
+
+    return chunks
+
 def merge(paras,max_size:int = 1000)->list[str]:
     chunks:list[str] = []
     current = ""
@@ -20,7 +39,8 @@ def merge(paras,max_size:int = 1000)->list[str]:
             if current:
                 chunks.append(current)
                 current = ""
-            chunks.extend(para[i:i+max_size] for i in range(0,len(para),max_size))
+            chunks.extend(get_chunks(para,max_size))
+            #chunks.extend(para[i:i+max_size] for i in range(0,len(para),max_size))
             continue
         candidate = f"{current}\n\n{para}" if current else para
         if len(candidate)<=max_size:
@@ -57,7 +77,7 @@ def store_records(records:list[dict],source:str):
     )
   
 
-def main():
+def process():
     max_size = 600
     files = Path("Docs").glob("*.txt")
     records = []
@@ -77,6 +97,14 @@ def main():
    # assert [r["id"] for r in records] == [r["id"] for r in records2], "ids not stable"
    # assert [r["hash"] for r in records] == [r["hash"] for r in records2], "hashes not stable"
    
+def main():
+    max_size = 600
+    file = Path("Docs")/"letter_of_credit.txt"
+    text = file.read_text("utf-8")
+    paras = split_into_paras(text)
+    chunks = merge(paras, max_size) 
+    print(f"chunks    \n {chunks}")
+
 
 
 

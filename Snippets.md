@@ -153,3 +153,27 @@ item.get("key_phrase")       # None instead of KeyError
 
 # 10. Debug a KeyError: print what's actually there
 print(item["id"], list(item.keys()))
+
+# 1. Last index of a substring (Java: s.lastIndexOf(".")), -1 if not found
+cut = window.rfind(". ")
+
+# 2. Integer division (Java int / int); "/" always gives a float in Python
+half = max_size // 2      # 300, not 300.0
+
+# 3. Slicing past the end is safe (Java substring would throw)
+"abc"[1:100]              # "bc"
+
+# 4. Omitted slice start = from 0 (Java: s.substring(0, n))
+window[:cut + 1]
+
+# 5. Don't grow the list you're looping over (Java throws CME, Python loops forever)
+out = []
+for p in paras:
+    out.extend(get_chunks(p, 600))
+
+# 6. import runs the whole module (Java import only names a class)
+if __name__ == "__main__":   # guard top-level code like Java's main()
+    main()
+
+# 7. Quick timing (Java: System.currentTimeMillis())
+import time; t = time.time(); ...; print(time.time() - t)

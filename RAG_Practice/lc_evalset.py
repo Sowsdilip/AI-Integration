@@ -14,4 +14,6 @@ EVAL_SET = [
   {"id":"lc-10","question":"How many banking days does a bank have to examine documents under UCP 600?","expected_answer":"Not found.","expected_found":False,"answered_by":"ucp600_document_examination.txt"},
   {"id":"lc-11","question":"What is an 'extend or pay' demand?","expected_answer":"Not found.","expected_found":False,"answered_by":"bank_guarantees.txt"},
   {"id":"lc-12","question":"What fee does an issuing bank in Dubai charge to open an LC?","expected_answer":"Not found.","expected_found":False,"answered_by":None},
+  {"id": "lc-13", "question": "What is a HashMap in Java?", "expected_answer": "Not found.", "expected_found": False, "expected_source": None, "key_phrase": None, "answered_by": None},  # off-topic
+  {"id": "lc-14", "question": "What is the maximum validity period of an LC in the UAE?","expected_answer": "Not found.", "expected_found": False,"expected_source": None, "key_phrase": None, "answered_by": None},  # in-domain near miss
 ]

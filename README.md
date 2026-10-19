@@ -726,3 +726,19 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 
 **Next:** eval set (12 Qs incl. not-found), re-ingest, Claude answer + citations
 
+## Day 9 — Sun Oct 18, 2026
+- Stored all 4 trade-finance docs in Chroma as paragraph chunks (36 chunks); ingest is idempotent (re-run adds 0)
+- search(): embed query → collection.query(top 4) → filter by distance; learned the [0] on Chroma results, keyword args, zip
+- eval.py: hit@4 = 10/11. lc-08 missed because the chunker cuts mid-word ("examines the docum|ents")
+- Best distances: found 0.21–0.59 vs true not-found 0.60 → distance alone can't catch in-domain near misses; use ~0.65 cutoff + "answer only from context" prompt
+- Learned: an eval set is the test suite for an AI system; labels go stale when the corpus changes (lc-10/11)
+- Java: ConcurrentHashMap internals (CAS on empty bin, synchronized on bin head, volatile get, no nulls)
+- Next: fix mid-word split, re-run eval, FastAPI /ask, semantic cache
+
+## Day 10 (Mon Oct 19, 2026)
+- Fixed the mid-word split: get_chunks() cuts oversized paragraphs at the last ". ", else the last space, else max_size-1
+- Learned: rfind (Java lastIndexOf), slices past the end don't error, start += cut + 1 (cut is relative to the window)
+- Debugged a hang: chunking works standalone; the ingest script hangs at importing/loading the embedding model (module top-level code runs on import)
+- Added 2 not-found eval questions: lc-13 off-topic (HashMap), lc-14 in-domain near miss (LC validity in UAE)
+- Java: volatile vs synchronized, happens-before
+

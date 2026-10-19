@@ -1,5 +1,17 @@
-   venv/
-   .env
-   __pycache__/
-   __init__.py
-   .pyc
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Chroma vector DB (rebuildable by re-ingesting)
+chromd_db/
+chroma_db/
+*.bin
+*.sqlite3
+
+# Secrets
+.env
+
+# Editor
+.vscode/
