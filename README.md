@@ -742,3 +742,11 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 - Added 2 not-found eval questions: lc-13 off-topic (HashMap), lc-14 in-domain near miss (LC validity in UAE)
 - Java: volatile vs synchronized, happens-before
 
+## Day 11 (Tue Oct 20, 2026)
+- Retrieval eval: top-4 hit rate 11/11 on answerable questions (lc-08 fixed by the new chunker)
+- Not-found questions: off-topic lc-13 at 0.87 (filtered by max_distance 0.65); in-domain lc-14 at 0.56, as close as real hits, so the "answer only from context" prompt is required
+- Built FastAPI POST /ask: returns citations (source#chunk_index) + chunks, or not found when no hit passes 0.65
+- Debugging: the "hang" was a slow import (20-50s), not a freeze; HF_HUB_OFFLINE=1 before import
+- Bugs: re-ingest silently processed 0 files (relative paths), eval checked top-1 only, search(q, True) set k=1, import gave module not function
+- Java: synchronized vs ReentrantLock, virtual-thread pinning
+

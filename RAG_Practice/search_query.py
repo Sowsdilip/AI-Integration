@@ -36,11 +36,19 @@ def run_eval():
 
 def main():
     run_eval()
-    #for item in EVAL_SET:
-       # print(item["id"], list(item.keys()))
+
+def test_search():
+    hits = []
+    for item in EVAL_SET:
+       if "lc-02" in item["id"]:
+           print(item["id"], list(item.keys()))
+           hits = search(item["question"],verbose = True)
+           break
+    print(hits)
+        
 
 if __name__ == "__main__":
-    main()
+    run_eval()
 
 
 

@@ -177,3 +177,35 @@ if __name__ == "__main__":   # guard top-level code like Java's main()
 
 # 7. Quick timing (Java: System.currentTimeMillis())
 import time; t = time.time(); ...; print(time.time() - t)
+
+
+# 1. import a function from a module (Java: import static pkg.Cls.method)
+from search_query import search     # "import search_query" gives the module, not the function
+
+# 2. Paths relative to the script, not where you run it from
+from pathlib import Path
+BASE = Path(__file__).parent
+files = list((BASE / "Docs").glob("*.txt"))   # glob is a generator; list() to count/reuse
+
+# 3. Env var before import (Java: System.setProperty before class load)
+import os
+os.environ["HF_HUB_OFFLINE"] = "1"
+
+# 4. Guard empty list before [0] (Java: list.isEmpty())
+if not hits:
+    return {"answer": "not found", "citations": [], "cached": False}
+
+# 5. Tuple unpacking in a comprehension; _ for unused values
+citations = [f"{m['source']}#{m['chunk_index']}" for _, m, _ in hits]
+
+# 6. NamedTuple = Java record (still unpacks like a tuple)
+from typing import NamedTuple
+class Hit(NamedTuple):
+    doc: str
+    meta: dict
+    dist: float
+
+# 7. pydantic request body = Java DTO with validation
+from pydantic import BaseModel
+class AskRequest(BaseModel):
+    question: str

@@ -1,3 +1,5 @@
+import os
+os.environ["HF_HUB_OFFLINE"] = "1"
 import re
 from make_chunk import sha
 from pathlib import Path
@@ -5,7 +7,9 @@ from sentence_transformers import SentenceTransformer
 import chromadb
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
-client = chromadb.PersistentClient("./chromd_db")
+BASE = Path(__file__).parent
+client = chromadb.PersistentClient(str(BASE / "chromd_db"))
+#client = chromadb.PersistentClient("./chromd_db")
 collection = client.get_or_create_collection("docs",metadata={"hnsw:space":"cosine"})
 
 def split_into_paras(text:str)->list[str]:
@@ -79,7 +83,8 @@ def store_records(records:list[dict],source:str):
 
 def process():
     max_size = 600
-    files = Path("Docs").glob("*.txt")
+    files = (BASE / "Docs").glob("*.txt")
+    #files = Path("Docs").glob("*.txt")
     records = []
     before = collection.count()    
     for file in files:
@@ -103,11 +108,11 @@ def main():
     text = file.read_text("utf-8")
     paras = split_into_paras(text)
     chunks = merge(paras, max_size) 
-    print(f"chunks    \n {chunks}")
-
+    #print(f"chunks    \n {chunks}")
+    print([i for i, c in enumerate(chunks) if "examines the documents" in c])
 
 
 
 
 if __name__ =="__main__":
-    main()
+    process()
