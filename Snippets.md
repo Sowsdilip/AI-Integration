@@ -209,3 +209,21 @@ class Hit(NamedTuple):
 from pydantic import BaseModel
 class AskRequest(BaseModel):
     question: str
+
+# First match or default (Java: stream().filter().findFirst().orElse(null))
+text = next((b.text for b in blocks if b.type == "text"), None)
+
+# Nested unpacking in a loop
+for label, (doc, meta, dist) in zip(labels, hits): ...
+
+# Build a string: collect in a list, then join (Java: String.join / StringBuilder)
+context = "\n\n".join(f"[{l}]\n{d}" for l, d in pairs)   # str has no .append
+
+# Conditional expression (Java: cond ? a : b)
+x = parse_json(t) if t else None
+
+# Safe dict read (Java: map.getOrDefault)
+cites = data.get("citations", [])
+
+# Filter by set membership (Java: .filter(sent::contains))
+valid = [c for c in cites if c in set(labels)]

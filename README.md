@@ -750,3 +750,31 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 - Bugs: re-ingest silently processed 0 files (relative paths), eval checked top-1 only, search(q, True) set k=1, import gave module not function
 - Java: synchronized vs ReentrantLock, virtual-thread pinning
 
+### Day 12 — Oct 21, 2026 · Claude wired into /ask
+
+**Built**
+- `ask_claude()` in `RAG_Practice/api_for_search.py`
+- Context = labelled chunks: `[source#chunk_index]\n<doc>`, joined with blank lines
+- Claude returns JSON `{answer, citations}` → `parse_json()` strips ``` fences, falls back on bad JSON
+- Citations filtered against labels actually sent (drops made-up ones)
+- One `AskResponse` model (`response_model=`) for hits and not-found
+
+**Results**
+| Q | Result |
+|---|---|
+| lc-01 | Full answer, 2 valid citations (`letter_of_credit.txt#0`, `#2`) |
+| lc-14 | `"not found"` (confirm via log: prompt guard vs empty reply) |
+
+**Bugs fixed**
+- `response_class=` → `response_model=` (caused 500)
+- List inside f-string → `"\n\n".join(parts)`
+- `zip(labels, hits)` → unpack `label, (doc, meta, dist)`
+- `str` has no `.append`
+- Message key must be `"content"`, not `"Context"`
+- `content[0]` was a `ThinkingBlock` → pick block with `type == "text"`
+- Variable used before assignment → `UnboundLocalError`
+
+**Java:** ExecutorService: fixed vs cached pool, `shutdown` vs `shutdownNow`, `Future.get()` → `ExecutionException`
+
+**Next:** max_tokens + stop_reason → semantic cache → hybrid search (Sat)
+
