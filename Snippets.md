@@ -227,3 +227,104 @@ cites = data.get("citations", [])
 
 # Filter by set membership (Java: .filter(sent::contains))
 valid = [c for c in cites if c in set(labels)]
+
+# 1. Logging (Java: LoggerFactory.getLogger(X.class))
+log = logging.getLogger(__name__)            # module name, "__main__" if run directly
+log.info("q=%r hits=%d best=%s", q, n, best) # one %-placeholder per arg
+
+# 2. Object vs dict
+message.stop_reason    # SDK/pydantic object → dot (Java getter)
+data.get("answer")     # dict → .get / [] (Java Map)
+
+# 3. Ternary (Java: cond ? a : b); empty list is falsy
+best = round(hits[0][2], 3) if hits else None
+
+# 4. Mutate shared list vs rebind name
+cache.clear()   # empties the one shared list (Java list.clear())
+cache = []      # only rebinds this name; importers keep the old list
+
+# 5. Imports: python file.py → script's folder on sys.path
+#    python -m pkg.mod / uvicorn pkg.mod:app → current folder on sys.path
+
+## Day 14 — Fri Oct 23, 2026
+
+**max() with a default** (Java: `.max().orElse(0.0)`)
+```python
+best = max((cos(q, e.vec) for e in cache), default=0.0)  # no default → ValueError on empty
+```
+
+**f-string with literal braces** (Java: `String.format`)
+```python
+SYSTEM = f'set "answer" to "{not_found}". JSON: {{"answer": "..."}}'  # {{ }} = literal { }
+```
+
+**strip() with chars + exact compare** (Java: `trim().toLowerCase().equals(...)`)
+```python
+"Not found. ".strip(" .").lower() == "not found"   # True
+```
+
+**Method vs call**
+```python
+s.strip      # the method object itself → .lower() on it = AttributeError
+s.strip()    # the result
+```
+
+**dict.get with default** (Java: `getOrDefault`)
+```python
+answer = data.get("answer", "")   # never None
+```
+
+**Modules are singletons** (like Java static fields)
+```python
+cache = [1, 2]
+def wrong(): cache = []      # new local name, global untouched
+def right(): cache.clear()   # empties the one shared list
+```
+
+**%r in logging** (shows quotes, so you can see empty strings and spaces)
+```python
+log.warning("no valid citations: answer=%r received=%s", answer, labels)
+```
+
+## Day 17 — Nov 1 · dicts, sorting, zip, rebinding
+
+```python
+# enumerate gives (index, item) pairs; start= is a keyword, not a variable
+for rank, label in enumerate(["A", "B"], start=1):   # 1 A, 2 B
+    ...
+
+# running total in a dict          Java: map.merge(k, v, Double::sum)
+scores[label] = scores.get(label, 0) + 1 / (60 + rank)
+
+# looping over a dict gives KEYS    Java: map.keySet()
+list(d)          # ['A', 'B']
+list(d.items())  # [('A', 0.03), ('B', 0.02)]   Java: entrySet()
+
+# sort keys by value, highest first
+sorted(d, key=d.get, reverse=True)    # pass d.get, NOT d.get(x)  (= Java map::get)
+sorted(d, key=lambda k: d[k], reverse=True)   # same thing
+# sorted() is ascending by default
+
+# zip = one-shot iterator (no data, just a cursor)   Java: Stream / Iterator
+z = zip(labels, docs)
+d = dict(z)      # uses it up
+list(z)          # []  ← silently empty (Java Stream would throw)
+lookup = dict(zip(labels, docs))   # store it if you need it again
+
+# comprehension = loop turned inside out
+parts = [f"[{l}]\n{lookup[l]}" for l in labels]
+
+# mutate vs rebind
+a = [1]; b = a
+b += [2]       # mutates → a == [1, 2]
+b = b + [3]    # new list, rebinds b only → a still [1, 2]
+def f(d):
+    d["A"] = 2  # caller sees it
+    d = {}      # local rebind only, caller doesn't
+```
+
+```powershell
+# imports across packages: run from the parent folder
+python -m RAG_Practice.hybrid_search
+uvicorn RAG_Practice.api_for_search:app --reload
+```

@@ -35,7 +35,8 @@ def run_eval():
            
 
 def main():
-    run_eval()
+   results =  search("What is the maximum validity period of an LC in the UAE?")
+   print(results)
 
 def test_search():
     hits = []
@@ -48,7 +49,7 @@ def test_search():
         
 
 if __name__ == "__main__":
-    run_eval()
+    main()
 
 
 

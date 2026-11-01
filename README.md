@@ -778,3 +778,94 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 
 **Next:** max_tokens + stop_reason → semantic cache → hybrid search (Sat)
 
+### Day 13 — Thu Oct 22, 2026 · stop_reason, logging, prompt guard, semantic cache
+
+**Built**
+- ask_claude: max_tokens → 1500, reads `message.stop_reason`
+- One log line per request: question, hits, best distance, stop_reason (`logging.getLogger(__name__)`)
+- Tightened SYSTEM prompt: "not found" when the context lacks the *specific fact* asked (not just "nothing relevant")
+- Semantic cache in front of /ask: in-memory list (Phase 1 code), stores answer + citations, reuses RAG embedding model, embeds once, threshold 0.85 cosine similarity, never caches "not found"
+
+**Results**
+| Test | Result |
+|---|---|
+| lc-14 (UAE max validity) | hits=4, stop_reason=end_turn → was a prompt issue; now "not found" |
+| lc-01 (what is an LC) | answer + citation letter_of_credit.txt#0 |
+| Off-topic ("hash map") | hits=0, not found, no crash |
+| Same question twice | 2nd = cache hit, score 1.000, no Claude call |
+| Paraphrase ("Who applies for an LC?") | miss (safe side) |
+| Near-miss ("beneficiary") | miss ✅ (no wrong answer served) |
+
+**Bugs fixed**
+- Looped over `stop_reason` (a str → chars); used `.get()` on pydantic `Message`
+- `log()` not callable; `%.3f` given meta dict (dist is index 2); missing `%s`
+- `hits[0]` on empty hits; `min[[...]]` → `min(...)`; stale server (use `--reload`)
+- SYSTEM rules ("include related details", "answer the part you can") caused lc-14 leak
+- Cache stored only not-found answers (`==` instead of `!=`)
+
+**Java**
+- CompletableFuture: thenApply = map, thenCompose = flatMap (fn returns a CF); exceptionally / handle for errors; supplyAsync default = ForkJoinPool.commonPool() → pass own executor for blocking I/O
+
+**Next**
+- Fri: log score on miss → tune threshold; citations guard; max_tokens branch; `cache.clear()` on re-ingest
+- Sat am: hybrid search (BM25 + vector, RRF)
+
+
+### Day 14 — Fri Oct 23, 2026 · Cache threshold + citations guard
+
+**Built**
+- Cache threshold tuned from logged miss scores: 0.85 → 0.80
+- Citations guard in ask_claude: exact "not found" → citations []; no valid citations after filtering → "not found" + warning log
+- max_tokens stop_reason → "not found" (truncated JSON is never trusted)
+- not_found constant shared by the SYSTEM prompt (f-string) and the code check
+
+**Results**
+| Question | Score | Result |
+|---|---|---|
+| "Who applies for an LC?" (paraphrase) | 0.810 | Cache hit, no Claude call |
+| "Who is the beneficiary in an LC?" | 0.550 | Miss (correct: opposite party) |
+| lc-14 (not found) | – | "not found", citations [] |
+| lc-01 with sent_labels emptied (test) | – | "not found" + warning |
+
+**Bugs fixed**
+- Plain """ string did not substitute not_found → f-string with {{ }} for JSON
+- .strip.lower() missing () → AttributeError
+- .get("answer") could be None → default ""
+- Empty-citations check ran before the filter → made-up labels slipped through
+
+**Java**
+- CompletableFuture: thenCombine vs allOf vs anyOf, join() vs get(), orTimeout / completeOnTimeout
+
+**Next**
+- Sat: hybrid search (BM25 + vector, RRF), top-4 hit rate before/after
+- Threshold rests on 2 data points → re-check in answer eval
+
+- Python object-model drills: modules 3/3, .get() 5/5, f-strings 3/4, .strip 3/4, references 1/3, scope 1/2 → revisit rebinding + scope
+
+### Day 16–17 — Oct 28, Oct 31–Nov 1 · Hybrid search (BM25 + vector, RRF) in /ask
+
+**Built**
+- `rrf(result_lists, k=60, top_m=4)`: score = sum of 1/(k + rank) per list, ranks start at 1; sorted by score desc
+- `CHUNK_TEXT = dict(zip(labels, documents))` in bm25_search.py: one label → text lookup for all 36 chunks (both searches use `source#chunk_index`)
+- /ask: cache → vector search (k=10, max_dist=0.65; empty = not found) → BM25 + RRF → top 4 fused chunks → Claude → citations filter → cache
+
+**Results**
+| Q | Fused top 1 | /ask result |
+|---|---|---|
+| lc-01 What is an LC? | letter_of_credit#0 | answer, cites #0; repeat → cached |
+| lc-02 Who is the applicant? | letter_of_credit#0 (BM25 lifts #0/#3/#2, vector best only 0.559) | "the buyer", cites #0 |
+| lc-14 Max LC validity in UAE | ucp600#2 | not found: best 0.559 passes the gate, the prompt guard stops it |
+
+**Bugs fixed**
+- `for label in enumerate(...)` → unpack `rank, label` (`start` is a kwarg, not a variable)
+- score computed but never stored back in the dict
+- `sorted(dict)` iterates keys → `key=lambda p: p[0]` sorted by first letter; fix `key=label_dict.get` (no `()`), plus `reverse=True`
+- `zip` is a one-shot iterator → `dict(zip(...))` for lookups
+- ModuleNotFoundError → run `python -m pkg.module` / uvicorn from the parent folder
+- 401 invalid x-api-key → API key had expired, made a new one
+
+**Java**
+- ThreadLocal: per-thread value, no locks; pools reuse threads → `remove()` in `finally`; virtual threads → ScopedValue
+
+**Next**
+- Hybrid vs vector-only top-4 table (eval.py, key_phrase check)
