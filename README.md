@@ -729,7 +729,7 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 ## Day 9 — Sun Oct 18, 2026
 - Stored all 4 trade-finance docs in Chroma as paragraph chunks (36 chunks); ingest is idempotent (re-run adds 0)
 - search(): embed query → collection.query(top 4) → filter by distance; learned the [0] on Chroma results, keyword args, zip
-- eval.py: hit@4 = 10/11. lc-08 missed because the chunker cuts mid-word ("examines the docum|ents")
+-   py: hit@4 = 10/11. lc-08 missed because the chunker cuts mid-word ("examines the docum|ents")
 - Best distances: found 0.21–0.59 vs true not-found 0.60 → distance alone can't catch in-domain near misses; use ~0.65 cutoff + "answer only from context" prompt
 - Learned: an eval set is the test suite for an AI system; labels go stale when the corpus changes (lc-10/11)
 - Java: ConcurrentHashMap internals (CAS on empty bin, synchronized on bin head, volatile get, no nulls)
@@ -869,3 +869,27 @@ cite source, now with hybrid search and groundedness folded in from the start.  
 
 **Next**
 - Hybrid vs vector-only top-4 table (eval.py, key_phrase check)
+
+### Day 18 — Mon Nov 2, 2026 · Hybrid vs vector-only top-4 table
+**Built**
+- eval_hybrid.py: run_eval(search_fn) over the 11 answerable Qs; is_hit checks key_phrase in CHUNK_TEXT[label], or answered_by == label source
+- hybrid_search.py: vector_top(q, k=4), hybrid_top(q, k=4) (fuses top 10 of each with rrf, top_m=k)
+
+**Results**
+| Search | Top-4 hit rate |
+|---|---|
+| Vector only | 11/11 |
+| Hybrid (BM25 + vector, RRF) | 11/11 |
+Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
+
+**Bugs fixed**
+- bm25_search ignored slice_index → return sorted_scores[:slice_index]
+- hybrid_top had no return; fused[:k] capped by rrf top_m → pass top_m=k
+- item.expected_answer on a dict → item["..."]; return inside loop; "str" + list TypeError
+- skip rule by answer text dropped lc-10/11 → skip when key_phrase and answered_by are both None
+
+**Java**
+- String immutability + string pool 
+
+**Next**
+- Small refactor (package split, SemanticCache class), then tool calling / MCP

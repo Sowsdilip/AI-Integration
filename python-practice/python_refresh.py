@@ -32,8 +32,24 @@ def add_score(scores, label):
 
 label_dict = {"A": 1}
 add_score(label_dict, "A")
-print(label_dict)
+#print(label_dict)
 
 pairs = zip(["A", "B"], [1, 2])
 d = dict(pairs)
-print(len(d), list(pairs))
+#print(len(d), list(pairs))
+
+a = int('111',2)
+#print(a)
+
+def run_eval(name, rows):
+    hits = 0
+    for qid in ["lc-01", "lc-02", "lc-03"]:
+        hits += 1
+    rows.append((name, hits))
+    rows = []
+    rows.append(("vector", 0))
+    return hits
+
+table = []
+n = run_eval("hybrid", table)
+print(n, table)

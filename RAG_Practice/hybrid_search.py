@@ -2,7 +2,7 @@ from bm25_search import bm25_search
 from search_query import search 
 
 def rrf(result_lists,k=60,top_m=4):
-   label_dict = {};
+   label_dict = {}
    for labels in result_lists:
        for rank,label in enumerate(labels,start = 1):
            score = label_dict.get(label,0)
@@ -21,11 +21,25 @@ def main():
     fused = rrf([vector_labels,bm25_labels])
     print(fused)
 
+def vector_top(q,k=4):
+     hits = search(q,k)
+     vector_labels =[f"{meta["source"]}#{meta["chunk_index"]}" for doc,meta,dist in hits]
+     return vector_labels
+
+def hybrid_top(q,k=4):
+     vector_labels = vector_top(q,10)
+     pairs = bm25_search(q,10)
+     bm25_labels = [label for label,_ in pairs]
+     fused = rrf([vector_labels,bm25_labels],top_m=k)
+     return fused
+
+
 def test_main():    
     vector_labels = ["A", "B", "C"]
     bm25_labels   = ["B", "D", "A"] 
-    sorted = rrf([vector_labels,bm25_labels])
+    fused = rrf([vector_labels,bm25_labels])
+    assert fused[:2] == ["B", "A"]
 
 
 if __name__ == "__main__":
-    main()
+    test_main()

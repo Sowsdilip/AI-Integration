@@ -24,10 +24,10 @@ def bm25_search(query:str,slice_index:int = 3):
     scores = bm25.get_scores(query_tokens)
     pairs = zip(labels,scores)
     sorted_scores = sorted(pairs,key = lambda p:p[1],reverse=True)
-   # return [p[0] for p in sorted_scores[:slice_index]]
+    #return [p[0] for p in sorted_scores[:slice_index]]
     return sorted_scores
 
 
 if __name__ == "__main__":
     query = "What is the maximum validity period of an LC in the UAE?"
-    print(bm25_search(query,4))
+    print(bm25_search(query,10))

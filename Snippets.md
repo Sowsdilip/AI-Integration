@@ -328,3 +328,43 @@ def f(d):
 python -m RAG_Practice.hybrid_search
 uvicorn RAG_Practice.api_for_search:app --reload
 ```
+
+# 1. Pass a function as a value (Java: method reference / Function<String, List<String>>)
+def run_eval(search_fn):
+    return [search_fn(item["question"]) for item in EVAL_SET]
+run_eval(vector_top)        # no () → pass the function, don't call it
+
+# 2. any() = Java stream().anyMatch()
+hit = any(phrase in CHUNK_TEXT[label] for label in labels)
+
+# 3. continue = same as Java
+for item in EVAL_SET:
+    if not item.get("key_phrase") and not item.get("answered_by"):
+        continue
+
+# 4. return inside a loop exits on the 1st item (return after the loop)
+for r in results:
+    return r                # ✗ returns only the first row
+return results              # ✓
+
+# 5. Loop runs once per item even if the variable is unused (Java: for (String q : ids) hits++;)
+for _ in ["a", "b", "c"]:
+    hits += 1               # hits == 3
+
+# 6. Mutate vs rebind a parameter
+def f(rows):
+    rows.append(1)          # caller sees this (same object)
+    rows = []               # caller does NOT see this (local name now points elsewhere)
+
+# 7. str + list → TypeError (no auto toString like Java)
+print("vec " + vec)         # ✗
+print(f"vec {vec}")         # ✓
+
+# 8. is vs == (Java: == vs equals())
+x = "LC"; y = "LC"
+x is y                      # same object → Java a == b
+x == y                      # same value  → Java a.equals(b)
+
+# 9. Split a label
+label = "letter_of_credit.txt#0"
+label.split("#")[0]         # 'letter_of_credit.txt'
