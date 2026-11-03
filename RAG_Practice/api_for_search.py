@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 import json
 import logging
 from rag_layer import model
-from semantic_cache import find_best_match,cache,CacheEntry
+from semantic_cache import Semantic_Cache
 from bm25_search import bm25_search,CHUNK_TEXT
 from hybrid_search import rrf
+
 
 app = FastAPI()
 load_dotenv()
@@ -24,6 +25,7 @@ Rules:
 - If the context doesn’t contain the specific fact asked for, set "answer" to "{not_found}" and "citations" to [].
 - Cite the chunk IDs you used, e.g. "letter_of_credit.txt#3".
 - Respond with JSON only: {{"answer": "...", "citations": ["..."]}}"""
+cache = Semantic_Cache()
 
 class RequestModel(BaseModel):
     question:str
@@ -77,7 +79,7 @@ def ask_claude(labels,question:str):
 @app.post("/ask", response_model=AskResponse)
 def search_with_rag(req:RequestModel):
     embedding = model.encode(req.question).tolist()
-    match,score = find_best_match(embedding)
+    match,score = cache.find_best_match(embedding)
     if match:
         stats["hits"]+=1
         log.info("question=%r stats=%s   cached=%s score=%f",req.question,stats,True,score)
@@ -103,7 +105,7 @@ def search_with_rag(req:RequestModel):
     log.info("cached=%s",response.cached)
     log.info("stats=%s score=%f",stats,score)
     if not_found != response.answer:
-        cache.append(CacheEntry(question=req.question, answer=response.answer, embedding=embedding,citations = response.citations))
+        cache.store(req.question,embedding,response.answer,response.citations)
     return response
 
 def main():

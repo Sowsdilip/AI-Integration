@@ -368,3 +368,30 @@ x == y                      # same value  → Java a.equals(b)
 # 9. Split a label
 label = "letter_of_credit.txt#0"
 label.split("#")[0]         # 'letter_of_credit.txt'
+
+# 1. Plain class = state + behaviour (Java class with fields set in the constructor)
+class SemanticCache:
+    def __init__(self, threshold=0.80):      # Java: public SemanticCache(double threshold)
+        self._entries: list[CacheEntry] = [] # "_" = private by convention only
+        self.threshold = threshold           # fields only declared in __init__
+
+# 2. Class-level list = shared by ALL instances (Java: static List)
+class Bad:
+    entries = []          # one list for every Bad() object
+a, b = Bad(), Bad()
+a.entries.append(1)
+print(b.entries)          # [1]
+
+# 3. Passing a list in = aliasing (Java: this.entries = entries)
+shared = []
+c = SemanticCache(); c._entries = shared
+shared.append("x")
+print(c._entries)         # ['x'], same list
+safe = list(shared)       # copy, Java: new ArrayList<>(shared)
+
+# 4. Keyword args stop argument-order bugs (Java has no equivalent)
+cache.store(question=q, q_emb=emb, answer=ans, citations=cits)
+
+# 5. Building strings: join, not += in a loop (Java: StringBuilder)
+parts = [f"[{label}]\n{CHUNK_TEXT[label]}" for label in labels]
+context = "\n\n".join(parts)   # O(n); s += ... in a loop is O(n²)

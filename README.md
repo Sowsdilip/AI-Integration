@@ -893,3 +893,28 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 
 **Next**
 - Small refactor (package split, SemanticCache class), then tool calling / MCP
+
+### Day 19 — Tue Nov 3, 2026 · SemanticCache class refactor
+
+**Built**
+- `semantic_cache.py`: `Semantic_Cache` plain class with `find_best_match`, `store`, `clear`; threshold 0.80 lives on the object
+- `api_for_search.py`: one module-level instance (`cache = Semantic_Cache()`), /ask calls `cache.find_best_match` / `cache.store`
+
+**Results**
+| Test | Result |
+|---|---|
+| lc-01 first call | Claude answer, citations #0, #2, cached: false |
+| lc-01 repeat | same answer, cached: true |
+
+**Bugs fixed**
+- Class extended pydantic BaseModel → plain class (BaseModel is for data shapes)
+- `def init` → `def __init__`; `else None` → `else []`
+- Lookup function outside the class created a new empty cache every call → method using `self`
+- Class-level `cache_entries = []` = shared class attribute (like static) → removed
+- `store()` called with answer/embedding swapped → keyword args
+
+**Java**
+- String `+=` in a loop is O(n²): immutable, so each pass copies all chars into a new heap String. StringBuilder = O(n) buffer, the default; StringBuffer = synchronized, rarely needed. Python: `"".join(parts)`
+
+**Next**
+- Tool calling: `search_docs` tool over hybrid search, tool_use → tool_result loop

@@ -52,4 +52,21 @@ def run_eval(name, rows):
 
 table = []
 n = run_eval("hybrid", table)
-print(n, table)
+#print(n, table)
+
+class SemanticCache:
+    def __init__(self, entries=None):
+        self.entries = entries if entries is not None else []
+
+shared = []
+a = SemanticCache(shared)
+b = SemanticCache(shared)
+
+a.entries.append("lc-01")
+b.entries.append("lc-02")
+print(shared)
+#b.entries = []
+#b.entries.append("lc-02")
+
+print(len(a.entries), len(b.entries), len(shared))
+print(shared)
