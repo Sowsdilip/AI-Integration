@@ -21,6 +21,14 @@ def main():
     fused = rrf([vector_labels,bm25_labels])
     print(fused)
 
+def hybrid_top(query):
+    pairs = bm25_search(query,10)
+    bm25_labels = [label for label,_ in pairs]
+    hits = search(query,10)
+    vector_labels =[f"{meta["source"]}#{meta["chunk_index"]}" for doc,meta,dist in hits]
+    fused = rrf([vector_labels,bm25_labels])
+    return fused
+
 def vector_top(q,k=4):
      hits = search(q,k)
      vector_labels =[f"{meta["source"]}#{meta["chunk_index"]}" for doc,meta,dist in hits]

@@ -64,9 +64,19 @@ b = SemanticCache(shared)
 
 a.entries.append("lc-01")
 b.entries.append("lc-02")
-print(shared)
+#print(shared)
 #b.entries = []
 #b.entries.append("lc-02")
 
-print(len(a.entries), len(b.entries), len(shared))
-print(shared)
+#print(len(a.entries), len(b.entries), len(shared))
+#print(shared)
+
+def add_turn(messages, role, content):
+    messages.append({"role": role, "content": content})
+    messages = []
+    messages.append("x")
+    return len(messages)
+
+history = [{"role": "user", "content": "What is an LC?"}]
+n = add_turn(history, "assistant", "tool_use...")
+print(n, len(history))

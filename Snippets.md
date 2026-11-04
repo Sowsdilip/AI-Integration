@@ -395,3 +395,10 @@ cache.store(question=q, q_emb=emb, answer=ans, citations=cits)
 # 5. Building strings: join, not += in a loop (Java: StringBuilder)
 parts = [f"[{label}]\n{CHUNK_TEXT[label]}" for label in labels]
 context = "\n\n".join(parts)   # O(n); s += ... in a loop is O(n²)
+
+# 1. difference between None and not
+query = ""
+print(query is None)   # False: "" is a real str object
+print(not query)       # True: "" is falsy
+tool_block = None
+print(tool_block is None)  # True: the right check for "not found yet"

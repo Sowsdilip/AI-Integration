@@ -918,3 +918,29 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 
 **Next**
 - Tool calling: `search_docs` tool over hybrid search, tool_use → tool_result loop
+
+### Day 20 — Wed Nov 4 · Tool calling basics (search_docs)
+**Built**
+- `RAG_Practice/tool_calling.py`: `search_docs` tool (name, description, JSON Schema `input_schema` with required `query`) wrapping `hybrid_top`
+- Round trip: question → `stop_reason: tool_use` → run hybrid search → `tool_result` (chunk text, `tool_use_id`) → final JSON answer with citations
+- Refactor: `send_message(messages)` with fixed model/tools/system; guard `if tool_block is None`
+
+**Results**
+| Question | 1st call | Tool input | Final answer | Citations |
+|---|---|---|---|---|
+| What is LC? | tool_use | {"query": "LC"} | LC overview + types | letter_of_credit.txt#0, #2, #3 |
+| What is HashMap? (off-topic) | tool_use | search | not found | [] |
+
+**Bugs fixed**
+- Placeholder tool description → Claude answered from memory (end_turn); real description → tool_use
+- `tools=["SEARCH_TOOL"]` (string) and a value inside `input_schema`
+- tool_result `content` as a dict → 400 "valid array"; must be a list of blocks
+- Sent labels instead of chunk text
+- System prompt only on the 2nd call → 400 thinking signature; same system on every call (now enforced by send_message)
+- Guard `query is None` never fired (`query = ""`) → `tool_block is None`
+
+**Java**
+- Stack vs heap, GC roots, static-cache leak (~4/10, taught). Eviction ≠ GC; FIFO vs LRU
+
+**Next**
+- `while stop_reason == "tool_use"` loop, citation filter vs sent labels; then a Spring endpoint as a 2nd tool
