@@ -2,6 +2,8 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from hybrid_search import hybrid_top
 from bm25_search import CHUNK_TEXT
+import json
+
 not_found = "not found"
 SYSTEM = f"""You answer questions using ONLY the provided context.
 Rules:
@@ -29,6 +31,16 @@ SEARCH_TOOL = {
     }
 }
 
+def parse_json(message: str) -> dict:
+    clean_msg = message.strip()
+    if clean_msg.startswith("```"):
+        clean_msg = clean_msg.split("\n", 1)[1]      
+        clean_msg = clean_msg.rsplit("```", 1)[0]  
+    try:
+        return json.loads(clean_msg)
+    except json.JSONDecodeError:
+        return {"answer": message.strip(), "citations": [], "warning": "model did not return valid JSON"}
+
 def send_message(messages):
     message = client.messages.create(
      model = "claude-haiku-5-5",
@@ -44,32 +56,44 @@ def send_message(messages):
 def call_claude(messages):
     message = send_message(messages)
     query = ""
-    tool_block = None
-    for block in message.content:
-      if block.type == "tool_use":
-        query = block.input["query"]
-        tool_block = block
-        break
-    if tool_block is None:
-     return
-    labels = hybrid_top(query)
-    parts = [f"[{label}]\n{CHUNK_TEXT[label]}" for label in labels]
-    context = "\n\n".join(parts)
-    content = {
-       "type":"tool_result",
-       "tool_use_id":tool_block.id,
-       "content":context
-    }
-    add_turn(messages,role="user",content=[content])
-    message = send_message(messages)
-    resp_message = next((b.text for b in message.content if b.type == "text"), None)
-    print(resp_message)
+    stop_reason = message.stop_reason
+    turns,max_turns = 0,4
+    while stop_reason == "tool_use" and turns<max_turns:
+      tool_block = None
+      for block in message.content:
+        if block.type == "tool_use":
+          query = block.input["query"]
+          tool_block = block
+          break
+      if tool_block is None:
+          return
+      labels = hybrid_top(query)
+      parts = [f"[{label}]\n{CHUNK_TEXT[label]}" for label in labels]
+      context = "\n\n".join(parts)
+      content = {
+        "type":"tool_result",
+        "tool_use_id":tool_block.id,
+        "content":context
+      }
+      add_turn(messages,role="user",content=[content])
+      message = send_message(messages)
+      stop_reason = message.stop_reason
+      turns+=1
+    print(f"turns  =>{turns}")
+    print(f"stop_reason   {stop_reason}")
+    json_message = {"answer":not_found,"citations":[]}
+    if stop_reason == "end_turn":
+       resp_message = next((b.text for b in message.content if b.type == "text"), None)
+       if resp_message:
+         json_message = parse_json(resp_message)
+    return json_message
     
 def main():
    messages = []
-   add_turn(messages,role="user",content="What is HashMap?")
+   add_turn(messages,role="user",content="What is LC?")
    print(messages)
-   call_claude(messages)
+   response = call_claude(messages)
+   print(response)
   
 
 if __name__ == "__main__":

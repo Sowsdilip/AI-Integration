@@ -402,3 +402,30 @@ print(query is None)   # False: "" is a real str object
 print(not query)       # True: "" is falsy
 tool_block = None
 print(tool_block is None)  # True: the right check for "not found yet"
+
+### Nov 5 — Day 21
+
+**Mutable default arg** (0/1)
+```python
+def collect_ids(blocks, results=[]): ...
+```
+Default is built ONCE at def time and shared by every call → r1 is r2, ['t1'] leaks into r2.
+Fix: `results=None` + `if results is None: results = []`. Java ≈ a static list shared by all callers.
+
+**Scope: assign to outer name** (1/1)
+```python
+turns = 0
+def bump():
+    turns += 1   # UnboundLocalError
+```
+Any assignment in a function makes the name local for the WHOLE function (decided at compile time).
+Fix: `global turns` (declaration, first line) or better `turns = bump(turns)`. Reading only = fine.
+
+**Rebind vs mutate + keyword args** (1/1)
+```python
+def reset(messages): messages = []      # rebinds local only, caller unchanged
+add_turn(history, content="ok", role="assistant")  # keywords → order doesn't matter
+```
+Output: `2 assistant`. `.append()` mutates the shared list; `=` only moves the local name.
+
+**Bonus from the loop:** `&` is bitwise and binds tighter than `==`/`<` → use `and`/`or` (Java `&&`/`||`).

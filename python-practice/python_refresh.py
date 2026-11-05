@@ -79,4 +79,35 @@ def add_turn(messages, role, content):
 
 history = [{"role": "user", "content": "What is an LC?"}]
 n = add_turn(history, "assistant", "tool_use...")
-print(n, len(history))
+#print(n, len(history))
+
+def collect_ids(blocks, results=[]):
+    for b in blocks:
+        if b.get("type") == "tool_use":
+            results.append(b["id"])
+    return results
+
+r1 = collect_ids([{"type": "tool_use", "id": "t1"}])
+r2 = collect_ids([{"type": "text"}])
+#print(r2, bool(r2), r1 is r2)
+
+#print(collect_ids.__defaults__)
+
+turns = 0
+def bump():
+    turns += 1
+    return turns
+
+#print(bump())
+
+def add_turn(messages, role, content):
+    messages.append({"role": role, "content": content})
+
+def reset(messages):
+    messages = []
+
+history = []
+add_turn(history, "user", "hi")
+reset(history)
+add_turn(history, content="ok", role="assistant")
+print(len(history), history[-1]["role"])

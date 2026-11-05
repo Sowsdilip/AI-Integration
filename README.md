@@ -944,3 +944,27 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 
 **Next**
 - `while stop_reason == "tool_use"` loop, citation filter vs sent labels; then a Spring endpoint as a 2nd tool
+
+### Day 21 — Thu Nov 5, 2026 · Tool-use while loop
+
+**Built**
+- `call_claude(messages)`: `while stop_reason == "tool_use" and turns < max_turns` (max 4) → run search_docs (hybrid_top) → tool_result → call again → return first text block
+
+**Results**
+| Question | Flow | Answer |
+|---|---|---|
+| What is HashMap? | tool_use → end_turn | not found, [] |
+| What is LC? | tool_use → end_turn | cited letter_of_credit #0/#2/#3 |
+
+**Bugs fixed**
+- stop_reason read once → infinite loop; update it each turn
+- tool_block not reset per turn (NameError / stale tool_use_id)
+- `&` instead of `and` (bitwise, binds tighter → TypeError)
+- `turns += turns` stayed 0
+- print → return
+
+**Java**
+- GC roots (stack locals, statics, threads, JNI); generational GC: Eden + S0/S1, survivors promoted to old gen; bound caches with LRU / Caffeine
+
+**Next**
+- Post-loop exits (max_tokens / hit max_turns → not found), one tool_result per tool_use, citation filter, Spring endpoint as 2nd tool
