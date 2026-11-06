@@ -110,4 +110,16 @@ history = []
 add_turn(history, "user", "hi")
 reset(history)
 add_turn(history, content="ok", role="assistant")
-print(len(history), history[-1]["role"])
+#print(len(history), history[-1]["role"])
+
+def collect(tool_id, ids=None):
+    if ids is None:
+     ids = []
+    ids.append(tool_id)
+    return ids
+
+a = collect("t1")
+b = collect("t2",["t1"])
+c = collect("t3")
+print(a,b, c)
+print(a is c)

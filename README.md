@@ -968,3 +968,28 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 
 **Next**
 - Post-loop exits (max_tokens / hit max_turns → not found), one tool_result per tool_use, citation filter, Spring endpoint as 2nd tool
+
+### Day 22 — Fri Nov 6 · Tool loop post-loop exit + weak spots (light day)
+**Built**
+- Post-loop exit in `tool_calling.py`: not-found dict set before the loop, overridden only on `end_turn` via `parse_json`; `tool_block is None` returns it
+- `max_turns` back to 4; SYSTEM typo fixed
+- Designed next step: one loop over content, one tool_result per tool_use, all in ONE user turn
+
+**Results**
+| Test | stop_reason | turns | Result |
+|---|---|---|---|
+| What is LC? (max_turns=4) | end_turn | 1 | answer, cites letter_of_credit.txt#0/#2/#3 |
+| What is LC? (max_turns=0) | tool_use | 0 | not found |
+
+**Bugs fixed**
+- end_turn path returned a raw str → dict via parse_json
+- `tool_block is None` returned None → not-found dict
+
+**Java**
+- GC roots + promotion ~7/10; -Xms/-Xmx + OOM types ~3/10 (taught)
+- Bounded caches: LinkedHashMap removeEldestEntry, Caffeine maximumSize/TTL, Spring @Cacheable
+- Prod story: static template HashMap with lazy init → check-then-act race → fix: static final ConcurrentHashMap + computeIfAbsent + log misses
+- `final` locks the reference, not the object
+
+**Next**
+- One tool_result per tool_use; citation filter; Spring endpoint as 2nd tool

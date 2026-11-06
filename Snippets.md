@@ -429,3 +429,18 @@ add_turn(history, content="ok", role="assistant")  # keywords → order doesn't 
 Output: `2 assistant`. `.append()` mutates the shared list; `=` only moves the local name.
 
 **Bonus from the loop:** `&` is bitwise and binds tighter than `==`/`<` → use `and`/`or` (Java `&&`/`||`).
+
+**Write the mutable-default fix — 0.5/1**
+    def collect(tool_id, ids=None):
+        if ids is None:
+            ids = []
+        ids.append(tool_id); return ids
+Why: `if ids: ids = []` wipes a caller's non-empty list and still uses the shared default.
+Rule: None default only for mutable types (list/dict/set); int/str/tuple defaults are safe.
+Java: like `if (ids == null) ids = new ArrayList<>();`
+
+**final = reference, not object (Java)**
+    static final Map<String, T> M = new ConcurrentHashMap<>();
+    M.put(k, v);          // OK: mutate
+    M = new HashMap<>();  // compile error: rebind
+Python analogy: rebind vs mutate (Python has no final).
