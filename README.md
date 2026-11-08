@@ -993,3 +993,34 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 
 **Next**
 - One tool_result per tool_use; citation filter; Spring endpoint as 2nd tool
+
+### Day 23 — Sat Nov 7, 2026 · Multi tool_use, citation filter, Spring app up
+
+**Built**
+- tool_calling.py handles every tool_use block: fresh `content = []` per turn, one tool_result per `block.id`, all in ONE user turn; `if not content:` → not-found dict
+- `sent_labels = set()` + `.update(labels)`; citation filter keeps only labels actually sent to Claude and writes them back
+- Strict grounding: no valid citations → not found; `"warning"` only when Claude gave a real answer (honest not found stays quiet). "Fail closed, but log why."
+- Spring Boot 4.1.2 app (Jar), `GET /api/lc/{lcNumber}` returns a stub LC JSON
+
+**Results**
+| Test | Result |
+|---|---|
+| What is LC? (lc-01) | answered, cited letter_of_credit #0/#2/#3, turns=1 |
+| Fake citation x.txt#9 | dropped by filter |
+| UAE max validity (lc-14) | not found, no false warning |
+| GET /api/lc/LC-1001 | stub JSON returned |
+
+**Bugs fixed**
+- `append(get_context(labels), block.id)` → parens wrong
+- `content = None` then `.append` → AttributeError; `[content]` → nested list
+- `content` outside the while → stale tool_results on turn 2
+- `sent_labels.append(list)` → list of lists (`update` = addAll)
+- `print("%r", x)` is logging style; `if answer:` → "not found" is truthy
+- Maven: cached "Network is unreachable" in .m2 → clear *.lastUpdated + force update; War → m2e error → Jar; https on an http port; `@RestController` on an interface → 404
+
+**Java**
+- -Xms initial / -Xmx max heap, equal in prod (no resize pauses); OOM: heap space, GC overhead, unable to create native thread (~6/10)
+- `@RestController` only on concrete classes; mappings inherited from the interface
+
+**Next**
+- Spring: Map of 3 LCs + record + 404; Python `get_lc_status` tool + dispatch dict; mixed question test

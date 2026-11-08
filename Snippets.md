@@ -444,3 +444,20 @@ Java: like `if (ids == null) ids = new ArrayList<>();`
     M.put(k, v);          // OK: mutate
     M = new HashMap<>();  // compile error: rebind
 Python analogy: rebind vs mutate (Python has no final).
+
+### Nov 7 — Day 23
+**None default + explicit list (0.5/1)**
+```python
+def collect(block_ids, results=None):
+    if results is None:
+        results = []
+    for bid in block_ids:
+        results.append({"tool_use_id": bid})
+    return results
+a = collect(["t1"]); b = collect(["t2"]); c = collect(["t3"], a)
+print(len(a), len(b), len(c))   # 2 1 2
+print(a is c, a is b)           # True False
+```
+Why: None default gives each call a fresh list; passing `a` passes its reference, so c is a.
+Fix in my prediction: if `a is c`, they must have the same length.
+Java: passing a List into a method and calling add() on it.

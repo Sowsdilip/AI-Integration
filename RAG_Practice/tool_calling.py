@@ -31,6 +31,18 @@ SEARCH_TOOL = {
     }
 }
 
+LC_TOOL = {
+    "name":"get_lc_status",
+    "description":"Get LC details live status/amount/expiry/beneficiary for one specific LC number like LC-1001, Not for general trade-finance concepts; use search_docs for those.",
+    "input_schema":{
+        "type":"object",
+        "properties":{
+            "lc_number":{"type":"string","description":"lc_number e.g. LC-1001."}         
+        },
+        "required":["lc_number"],
+    }
+}
+
 def parse_json(message: str) -> dict:
     clean_msg = message.strip()
     if clean_msg.startswith("```"):
@@ -53,44 +65,63 @@ def send_message(messages):
     add_turn(messages,role="assistant",content=message.content)
     return message
 
+def get_context(labels,tool_use_id):
+   parts = [f"[{label}]\n{CHUNK_TEXT[label]}" for label in labels]
+   context = "\n\n".join(parts)
+   content = {
+      "type":"tool_result",
+      "tool_use_id":tool_use_id,
+      "content":context
+    }
+   return content
+   
+
 def call_claude(messages):
     message = send_message(messages)
     query = ""
     json_message = {"answer":not_found,"citations":[]}
     stop_reason = message.stop_reason
     turns,max_turns = 0,4
+    sent_labels = set()
+    sent_labels_dict = []
     while stop_reason == "tool_use" and turns<max_turns:
-      tool_block = None
+      content = []
       for block in message.content:
         if block.type == "tool_use":
           query = block.input["query"]
-          tool_block = block
-          break
-      if tool_block is None:
-          return json_message
-      labels = hybrid_top(query)
-      parts = [f"[{label}]\n{CHUNK_TEXT[label]}" for label in labels]
-      context = "\n\n".join(parts)
-      content = {
-        "type":"tool_result",
-        "tool_use_id":tool_block.id,
-        "content":context
-      }
-      add_turn(messages,role="user",content=[content])
+          labels = hybrid_top(query)
+          sent_labels_dict.append({"tool_id":block.id,"labels":labels})
+          sent_labels.update(labels)
+          content.append(get_context(labels,block.id))
+      if not content:
+        return json_message
+      add_turn(messages,role="user",content=content)
       message = send_message(messages)
       stop_reason = message.stop_reason
       turns+=1
-    print(f"turns  =>{turns}")
+    print(f"turns  = {turns}")
     print(f"stop_reason   {stop_reason}")
     if stop_reason == "end_turn":
        resp_message = next((b.text for b in message.content if b.type == "text"), None)
        if resp_message:
          json_message = parse_json(resp_message)
+       received_labels =  json_message.get("citations",[])
+       #received_labels = ["letter_of_credit.txt#0","x.txt#9"]
+       if not received_labels:
+         if json_message.get("answer","").strip(" .").lower() != not_found:
+            print(f"no citations from calude: answer={json_message.get("answer","")} received={received_labels}")
+            return {"answer":not_found,"citations":[],"warning": "no citation from claude"}
+         return {"answer":not_found,"citations":[]}
+       citations = [citation for citation in received_labels if citation in sent_labels]
+       if not citations:
+         print(f"no valid citations: answer={json_message.get("answer","")} received={received_labels}")
+         return {"answer":not_found,"citations":[]}
+       json_message["citations"] = citations
     return json_message
     
 def main():
    messages = []
-   add_turn(messages,role="user",content="What is LC?")
+   add_turn(messages,role="user",content="What is the maximum validity period of an LC in the UAE?")
    print(messages)
    response = call_claude(messages)
    print(response)
