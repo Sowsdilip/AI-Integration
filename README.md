@@ -1024,3 +1024,33 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 
 **Next**
 - Spring: Map of 3 LCs + record + 404; Python `get_lc_status` tool + dispatch dict; mixed question test
+
+### Day 24 — Sun Nov 8, 2026 · Claude calls the Spring API (2 tools, dispatch dict)
+
+**Built**
+- Spring: `record LcDetails` + `Map.of` 3 LCs at `GET /api/lc/{lcNumber}`; unknown → 404 ProblemDetail ("LC X not found"); `@Pattern` allowlist → 400
+- call_spring_api.py: `get_lc_status` → `(text, is_error)`: regex allowlist (`re.fullmatch`), timeout=5, 404 detail, other status / service down → short safe message, full error logged
+- tool_calling.py: `LC_TOOL`, `run_search` / `run_lc_status` wrappers returning `(tool_result, labels)`, `TOOLS` dict + `TOOLS.get(block.name)`, unknown tool → `is_error`
+- Citations: doc chunks + `api:lc/<LC number>`; SYSTEM: tool error → not found + []
+
+**Results**
+| Question | Result |
+|---|---|
+| Status of LC-1001? | ISSUED, USD 1,000, cited api:lc/LC-1001 |
+| Status of LC-9999? | not found, nothing invented |
+| Confirmed LC + status of LC-1003? | 2 tool_use in 1 turn, cited #2 + api:lc/LC-1003 |
+| What is LC + status of LC-13? | doc answer + "LC-13 not found" |
+
+**Bugs fixed**
+- schema: changed `"type"` instead of the property key
+- file saved without `.py` → import failed
+- `run_search` returned 1 value, loop unpacked 2; loop still called `run_search` by name
+- `run_lc_status` returned None; empty `content.append()`
+- prompt said "say not found" but code gave errors no labels → false warning; dropped "ONLY" from SYSTEM
+
+**Java**
+- Promotion = survives N minor GCs (age threshold), not time; native-thread OOM = OS thread limit, not a busy pool; unbounded cache → bounded (Caffeine / LRU) (~7/10)
+- Allowlist vs blocklist validation, defense in depth (Python + Spring)
+
+**Next**
+- MCP hello-world server (Mon), then port both tools (Tue)

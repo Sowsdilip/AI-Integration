@@ -461,3 +461,15 @@ print(a is c, a is b)           # True False
 Why: None default gives each call a fresh list; passing `a` passes its reference, so c is a.
 Fix in my prediction: if `a is c`, they must have the same length.
 Java: passing a List into a method and calling add() on it.
+
+### Nov 8 — Day 24
+**Mutate vs rebind without global (1/1)**
+```python
+sent_labels = set(); calls = 0
+def record(labels):
+    sent_labels.update(labels)   # mutate: fine
+    calls += 1                   # rebind: UnboundLocalError
+```
+Why: assignment makes `calls` local for the whole function; `.update()` only mutates the global object.
+Fix: `global calls`, or return the new value.
+Java: like modifying a static List (ok) vs reassigning a captured local in a lambda (not allowed).

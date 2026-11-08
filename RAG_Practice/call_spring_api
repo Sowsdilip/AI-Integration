@@ -1,4 +1,0 @@
-import requests
-url = "http://localhost:8080/api/lc/LC-1001"
-resp = requests.get(url, timeout=5)
-print(resp.text)
