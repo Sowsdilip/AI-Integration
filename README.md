@@ -1054,3 +1054,14 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 
 **Next**
 - MCP hello-world server (Mon), then port both tools (Tue)
+
+### Day 25 — Mon Nov 9 · MCP hello-world server
+**Built:** MCP server with SDK 2.x (`MCPServer`, `@mcp.tool()`): `normalize_lc_number(lc_number: str | None = None) -> str` using a Python ternary; I wrote the tool description myself (what / when / when not / example).
+**Results:**
+| Test | Result |
+|---|---|
+| Inspector → normalize_lc_number(" lc-1001 ") | {"result": "LC-1001"} ✅ |
+| Input with inner space "lc -1001" | "LC -1001" (strip trims ends only → regex validation Sun) |
+**Bugs fixed:** v1 import (FastMCP renamed to MCPServer in 2.x); docstring passed as a parameter; print() in a stdio server corrupts the protocol; docstring promised behaviour the code didn't do; Inspector used uv → full python.exe path, args with forward slashes.
+**Java:** ThreadLocal re-check ~8/10; String intern a == b.intern() → true ✅
+**Next:** search_docs + get_lc_status as MCP tools, stateless streamable HTTP.
