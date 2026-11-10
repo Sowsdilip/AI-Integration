@@ -1,5 +1,5 @@
-from bm25_search import bm25_search
-from search_query import search 
+from RAG_Practice.bm25_search import bm25_search
+from RAG_Practice.search_query import search 
 
 def rrf(result_lists,k=60,top_m=4):
    label_dict = {}

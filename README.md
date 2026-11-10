@@ -1065,3 +1065,29 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 **Bugs fixed:** v1 import (FastMCP renamed to MCPServer in 2.x); docstring passed as a parameter; print() in a stdio server corrupts the protocol; docstring promised behaviour the code didn't do; Inspector used uv → full python.exe path, args with forward slashes.
 **Java:** ThreadLocal re-check ~8/10; String intern a == b.intern() → true ✅
 **Next:** search_docs + get_lc_status as MCP tools, stateless streamable HTTP.
+
+### Day 26 — Tue Nov 10 · MCP tools over stateless HTTP
+
+**Built**
+- mcp_refresh.py exposes 3 tools: normalize_lc_number, search_docs (hybrid_top → "[label]\ntext"), get_lc_status (Spring API)
+- Stateless streamable HTTP on 127.0.0.1:8001, tested in MCP Inspector
+- Tool errors: raise → SDK returns isError: true
+- get_lc_status returns a dict (json.loads, -> dict) → structured MCP output
+
+**Results**
+| Test | Result |
+|---|---|
+| search_docs "what is an LC" | letter_of_credit #0/#2/#3 + incoterms #9 |
+| get_lc_status LC-1001 | ISSUED, 1000 USD |
+| get_lc_status bad LC / Spring down | isError |
+
+**Bugs fixed**
+- Tool `def get_lc_status` shadowed the imported function → self-recursion
+- `searc_docs` typo (the function name is the tool name)
+- Bare `return` on error → None
+- ModuleNotFoundError: run `python -m MCP_Practice.mcp_refresh`; sibling imports → `RAG_Practice.x`
+- Inspector still on STDIO → spawned its own copy, "Not connected"
+- Return hint left as -> str after returning a dict → SDK output-schema error
+
+**Java**
+- -Xms/-Xmx + OOM types ~7.5/10 (missed initial heap, Metaspace, MaxRAMPercentage)

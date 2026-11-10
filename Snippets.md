@@ -473,3 +473,12 @@ def record(labels):
 Why: assignment makes `calls` local for the whole function; `.update()` only mutates the global object.
 Fix: `global calls`, or return the new value.
 Java: like modifying a static List (ok) vs reassigning a captured local in a lambda (not allowed).
+
+### Nov 10 — Day 26
+**Mutable default `labels=[]`** (1/1)
+```python
+def add_label(label, labels=[]):
+    labels.append(label)
+    return labels
+```
+Why: the default list is built once, when `def` runs, so every call shares it (`a is b` → True). Fix: `labels=None`, then `if labels is None: labels = []`. Java: like a shared `static final List`.

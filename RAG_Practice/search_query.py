@@ -1,5 +1,5 @@
-from rag_layer import model,collection
-from lc_evalset import EVAL_SET
+from RAG_Practice.rag_layer import model,collection
+from RAG_Practice.lc_evalset import EVAL_SET
 
 def search(query:str,k:int = 4,max_dist:float = 2.0,verbose:bool = False):
     query_emb = model.encode([query]).tolist()

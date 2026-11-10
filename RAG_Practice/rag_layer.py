@@ -1,7 +1,7 @@
 import os
 os.environ["HF_HUB_OFFLINE"] = "1"
 import re
-from make_chunk import sha
+from RAG_Practice.make_chunk import sha
 from pathlib import Path
 from sentence_transformers import SentenceTransformer
 import chromadb
