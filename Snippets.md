@@ -482,3 +482,22 @@ def add_label(label, labels=[]):
     return labels
 ```
 Why: the default list is built once, when `def` runs, so every call shares it (`a is b` → True). Fix: `labels=None`, then `if labels is None: labels = []`. Java: like a shared `static final List`.
+
+### Nov 13 — Day 27
+**Mutable default + rebind (0/2)**
+`def log_call(tool, calls=[])` + `reset(calls): calls = []` → both calls share one list; reset changes nothing.
+Why: default built once at def time; `=` only rebinds the local name. Fix: `calls=None` → `if calls is None: calls = []`; use `.clear()` to mutate.
+Java: like a shared `static final List`; reassigning a param doesn't touch the caller.
+
+# 1. Java Snippet LRU with LinkedHashMap
+class LruCache<K, V> extends LinkedHashMap<K, V> {
+    private final int capacity;
+    LruCache(int capacity) {
+        super(16, 0.75f, true);   // true = accessOrder
+        this.capacity = capacity;
+    }
+    @Override
+    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+        return size() > capacity;
+    }
+}

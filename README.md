@@ -1091,3 +1091,27 @@ Top-4 is saturated: hybrid = no regression; its gain is rank (lc-02).
 
 **Java**
 - -Xms/-Xmx + OOM types ~7.5/10 (missed initial heap, Metaspace, MaxRAMPercentage)
+
+### Day 27 — Fri Nov 13 · Python MCP client + error kinds
+**Built**
+- `MCP_Practice/mcp_client.py`: async client (`async with Client(url)`), `list_tools()` + `call_tool()` on all 3 tools
+- `call_spring_api.get_lc_status` → `(msg, kind)`; kind ∈ invalid_input / not_found / unavailable / upstream_error, `None` on success
+- tool_result text prefixed `[kind]`; SYSTEM rule per kind; allowlist `{not_found, unavailable}` for no-citation answers
+
+**Results**
+| Test | Result |
+|---|---|
+| Spring down, LC-1001 | "lc service unavailable please retry", [] ✅ |
+| LC-100 (404) | not found, [] ✅ |
+| Injected fake citations | blocked → not found + warning ✅ |
+| LC-1001 Spring up | cited `api:lc/LC-1001` ✅ |
+
+**Bugs fixed**
+- `Timeout` undefined → `requests.Timeout`
+- Mixed kinds (`True`, `"NOT FOUND"`) → 4 fixed lowercase strings
+- 404 `resp.json()` could crash on non-JSON body → own message
+- Interim version returned any uncited answer → allowlist (strict grounding kept)
+- Allowed branch returned `not_found` instead of the answer
+
+**Java**: LRU via LinkedHashMap (accessOrder=true, removeEldestEntry, Template Method, not thread-safe)
+**Next**: Claude → MCP client, LcStatus pydantic model, ToolError
